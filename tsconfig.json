@@ -1,0 +1,15 @@
+{
+    "compileOnSave": true,
+    "compilerOptions": {
+        "target": "es6",
+        "module": "commonjs",
+        "sourceMap": true,
+        "watch": false,
+        "experimentalDecorators": true,
+        "allowJs": true,
+        },
+        "exclude": [
+            "app",
+            "dist",
+            "services/utilities/sqlTokinazer"]
+}
