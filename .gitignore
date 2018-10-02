@@ -65,4 +65,5 @@ config
 *.js
 *.js.map
 !app/src/objects/sqlTokinazer/**
-
+!app/karma.conf.js
+!app/protractor.conf.js
