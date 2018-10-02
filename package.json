@@ -14,7 +14,7 @@
     "run:dev:app":"cd app && ng build --output-path ../dist --watch",
     "build:prod:app":"cd app && ng build --output-path ../dist --prod",
     "run:dev:server":"CONFIG_PATH=./env.dev.json BASE_DOMAIN_URL=http://localhost:3000 node startup.js",
-    "start": "node startup.js"
+    "start": "node startup.js "
   },
   "author": "",
   "license": "ISC",
