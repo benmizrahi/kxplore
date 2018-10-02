@@ -1,19 +1,19 @@
 version: "3"
 services: 
-  # kxplore:
-  #   image: kxplore
-  #   ports:
-  #     - 4000:3000
-  #   environment:
-  #   - CONFIG_PATH=/etc/kxplore/env.json
-  #   - BASE_DOMAIN_URL=http://localhost:4000
-  #   networks:
-  #     - kxploreNet
-  #   volumes:
-  #     - $PWD/config/:/etc/kxplore
-  #   depends_on:
-  #     - db
-  #     - redis
+  kxplore:
+    image: benmizrahi/kxplore
+    ports:
+      - 4000:3000
+    environment:
+    - CONFIG_PATH=/etc/kxplore/env.json
+    - BASE_DOMAIN_URL=http://localhost:4000
+    networks:
+      - kxploreNet
+    volumes:
+      - $PWD/config/:/etc/kxplore
+    depends_on:
+      - db
+      - redis
   zookeeper:  
     image: confluentinc/cp-zookeeper:${CONFLUENT_PLATFORM_VERSION:-3.0.0}
     ports:
