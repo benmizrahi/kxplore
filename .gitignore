@@ -60,6 +60,8 @@ typings/
 # next.js build output
 .next
 
+package-lock.json
+app/package-lock.json
 config
 *.js
 *.js.map
