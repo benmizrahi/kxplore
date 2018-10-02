@@ -61,6 +61,8 @@ typings/
 .next
 
 env.dev.json
+config
 *.js
 *.js.map
 !app/src/objects/sqlTokinazer/**
+
