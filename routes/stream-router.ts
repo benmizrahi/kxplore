@@ -22,7 +22,7 @@ export class StreamRouter {
         io.adapter(redisAdapter({ host: this.config['redis-config']['host'], port: this.config['redis-config']['port'] }));
         io.use((socket, next) => {
             if (socket.handshake.query && socket.handshake.query.token){
-                jwt.verify(socket.handshake.query.token, this.config['SECRET_KEY'], function(err, decoded) {
+                jwt.verify(socket.handshake.query.token, this.config.authConfig['SECRET_KEY'], function(err, decoded) {
                     if(err) return next(new Error('Authentication error'));
                     socket.decoded = decoded;
                     next();
