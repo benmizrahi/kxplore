@@ -72,3 +72,4 @@ config
 !app/karma.conf.js
 !app/protractor.conf.js
 docker/kxplore-deployment.yaml
+env.json
