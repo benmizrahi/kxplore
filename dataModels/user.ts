@@ -34,14 +34,15 @@ export class User {
                 `SELECT u.id,u.isAdmin,u.email,up.displayName,up.image,e.envName,t.topicName
                 from users u
                 JOIN users_profile up on u.id = up.userId
-                JOIN map_topics mt on mt.userId = up.userId
-                JOIN dim_topics t on t.id = mt.topicId
-                JOIN dim_envierments e on e.id = t.envId
+                LEFT JOIN map_topics mt on mt.userId = up.userId
+                LEFT JOIN dim_topics t on t.id = mt.topicId
+                LEFT JOIN dim_envierments e on e.id = t.envId
                 where u.id = ${id}`})
         
         let u = new User()
         let envs = {}
         profile_res.results.forEach(row => {
+            if(!row.envName) return;
            if(!envs[row.envName]) envs[row.envName] = []
            envs[row.envName].push(row.topicName)
         });

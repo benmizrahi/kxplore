@@ -143,7 +143,7 @@ export class KafkaHandler implements IHandler<KafkaAction>{
 
     private initEnvs = async () => {
         let db = await this.dbHandler.handle({action:DBAction.executeSQL,payload:
-            `select envName,props from KafkaLooker.dim_envierments`})
+            `select envName,props from dim_envierments`})
         this.envierments = {}
         db.results.forEach(row => {
             this.envierments[row.envName] = JSON.parse(row.props)

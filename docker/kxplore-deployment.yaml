@@ -1,0 +1,44 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: pdp-kxplore-app
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: pdp-kxplore-app
+    spec:
+      containers:
+        - image: gcr.io/cloudsql-docker/gce-proxy:1.11
+          imagePullPolicy: Always
+          name: cloudsqlproxy
+          command:
+          - /cloud_sql_proxy
+          - -instances=pdp-dev-195912:us-central1:grafana-dev-mysql=tcp:3307
+          - -credential_file=/secrets/cloudsql/pdp-dev-195912-8c3c404973d3.json
+          volumeMounts:
+          - mountPath: /secrets/cloudsql
+            name: cloudsql-instance-credentials
+            readOnly: true
+        - image: us.gcr.io/pdp-dev-195912/kxplore
+          name: pdp-kxplore-app
+          env:
+          - name: CONFIG_PATH
+            value: "/etc/kxplore/env.json"
+          - name: BASE_DOMAIN_URL
+            value: "http://35.192.208.45/"
+          volumeMounts:
+          - mountPath: /etc/kxplore
+            name: env-config
+            readOnly: true
+      volumes:
+      - name: cloudsql-instance-credentials
+        secret:
+          defaultMode: 420
+          secretName: cloudsql-instance-credentials
+      - name: env-config
+        secret:
+          defaultMode: 420
+          secretName: env-config
+    

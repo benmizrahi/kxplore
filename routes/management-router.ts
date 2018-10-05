@@ -33,14 +33,14 @@ export class ManagmentRouter{
             try{
                 if(req.body.id) {
                     let resutls = await this.dbHandler.handle({action:DBAction.executeSQL,payload:`
-                        UPDATE KafkaLooker.dim_envierments
+                        UPDATE dim_envierments
                         SET envName = '${req.body.envName}',
                             props = '${JSON.stringify(req.body.props)}'
                         WHERE id = ${req.body.id}
                     `})
                 }else{
                     await this.dbHandler.handle({action:DBAction.executeSQL,payload:`
-                        insert into KafkaLooker.dim_envierments (envName,props)
+                        insert into .dim_envierments (envName,props)
                         values('${req.body.envName}','${JSON.stringify(req.body.props)}');
                 `})
                 }
@@ -55,7 +55,7 @@ export class ManagmentRouter{
         app.post('/api/envierments/delete', [this.jwtMiddleware.authCall], async (req, res, next) => {
             try{
                 let resutls = await this.dbHandler.handle({action:DBAction.executeSQL,payload:`
-                    DELETE FROM  KafkaLooker.dim_envierments
+                    DELETE FROM  .dim_envierments
                     WHERE id = ${req.body.id}
                 `})
                 res.json(await this.getEnvierments())
@@ -82,7 +82,7 @@ export class ManagmentRouter{
             try{
                 if(req.body.id) {
                     let resutls = await this.dbHandler.handle({action:DBAction.executeSQL,payload:`
-                        UPDATE KafkaLooker.dim_topics
+                        UPDATE .dim_topics
                         SET 
                             envId = '${req.body.envId}',
                             topicName = '${req.body.topicName}'
@@ -90,7 +90,7 @@ export class ManagmentRouter{
                     `})
                 }else{
                     await this.dbHandler.handle({action:DBAction.executeSQL,payload:`
-                        insert into KafkaLooker.dim_topics (envId,topicName)
+                        insert into .dim_topics (envId,topicName)
                         values('${req.body.envId}','${req.body.topicName}');
                 `})
                 }
@@ -105,7 +105,7 @@ export class ManagmentRouter{
         app.post('/api/topics/delete', [this.jwtMiddleware.authCall], async (req, res, next) => {
             try{
                 let resutls = await this.dbHandler.handle({action:DBAction.executeSQL,payload:`
-                    DELETE FROM  KafkaLooker.dim_topics
+                    DELETE FROM  .dim_topics
                     WHERE id = ${req.body.id}
                 `})
                 res.json(await this.getTopics())
@@ -132,7 +132,7 @@ export class ManagmentRouter{
             try{
                 if(req.body.id) {
                     let resutls = await this.dbHandler.handle({action:DBAction.executeSQL,payload:`
-                        UPDATE KafkaLooker.dim_topics
+                        UPDATE .dim_topics
                         SET 
                             envId = '${req.body.envId}',
                             topicName = '${req.body.topicName}'
@@ -140,7 +140,7 @@ export class ManagmentRouter{
                     `})
                 }else{
                     await this.dbHandler.handle({action:DBAction.executeSQL,payload:`
-                        insert into KafkaLooker.dim_topics (envId,topicName)
+                        insert into .dim_topics (envId,topicName)
                         values('${req.body.envId}','${req.body.topicName}');
                 `})
                 }
@@ -155,7 +155,7 @@ export class ManagmentRouter{
         app.post('/api/topics/delete', [this.jwtMiddleware.authCall], async (req, res, next) => {
             try{
                 let resutls = await this.dbHandler.handle({action:DBAction.executeSQL,payload:`
-                    DELETE FROM  KafkaLooker.dim_topics
+                    DELETE FROM  .dim_topics
                     WHERE id = ${req.body.id}
                 `})
                 res.json(await this.getTopics())
@@ -182,7 +182,7 @@ export class ManagmentRouter{
                     try{
                         if(req.body.id) {
                             let resutls = await this.dbHandler.handle({action:DBAction.executeSQL,payload:`
-                                UPDATE KafkaLooker.users
+                                UPDATE .users
                                 SET 
                                     email = '${req.body.email}',
                                     isAdmin = ${req.body.isAdmin}
@@ -190,7 +190,7 @@ export class ManagmentRouter{
                             `})
                         }else{
                             await this.dbHandler.handle({action:DBAction.executeSQL,payload:`
-                                insert into KafkaLooker.users (email,isAdmin)
+                                insert into .users (email,isAdmin)
                                 values('${req.body.email}',${req.body.isAdmin});
                         `})
                         }
@@ -205,7 +205,7 @@ export class ManagmentRouter{
         app.post('/api/user/delete', [this.jwtMiddleware.authCall], async (req, res, next) => {
             try{
                 let resutls = await this.dbHandler.handle({action:DBAction.executeSQL,payload:`
-                    DELETE FROM  KafkaLooker.users
+                    DELETE FROM  .users
                     WHERE id = ${req.body.id}
                 `})
                 res.json(await this.getUsers())
@@ -233,7 +233,7 @@ export class ManagmentRouter{
             try{
                 if(req.body.id) {
                     let resutls = await this.dbHandler.handle({action:DBAction.executeSQL,payload:`
-                        UPDATE KafkaLooker.map_topics
+                        UPDATE .map_topics
                         SET 
                             userId = ${req.body.uId},
                             topicId = ${req.body.tId}
@@ -241,7 +241,7 @@ export class ManagmentRouter{
                     `})
                 }else{
                     await this.dbHandler.handle({action:DBAction.executeSQL,payload:`
-                        insert into KafkaLooker.map_topics (userId,topicId)
+                        insert into .map_topics (userId,topicId)
                         values(${req.body.uId},${req.body.tId});
                 `})
                 }
@@ -256,7 +256,7 @@ export class ManagmentRouter{
         app.post('/api/premission/delete', [this.jwtMiddleware.authCall], async (req, res, next) => {
             try{
                 let resutls = await this.dbHandler.handle({action:DBAction.executeSQL,payload:`
-                    DELETE FROM  KafkaLooker.map_topics
+                    DELETE FROM  .map_topics
                     WHERE id = ${req.body.id}
                 `})
                 res.json(await this.getPremissions())
@@ -272,7 +272,7 @@ export class ManagmentRouter{
     private getEnvierments = async () => {
             let resutls = await this.dbHandler.handle({action:DBAction.executeSQL,payload:`
                 SELECT id, envName, props
-                FROM KafkaLooker.dim_envierments;
+                FROM .dim_envierments;
             `})
         return resutls.results.map((x)=> {
             return  {id:x.id,envName:x.envName,props:JSON.parse(x.props)}})
@@ -291,7 +291,7 @@ export class ManagmentRouter{
     private getUsers = async() => {
         let resutls = await this.dbHandler.handle({action:DBAction.executeSQL,payload:`
             SELECT t.id, t.email, t.isAdmin
-            FROM KafkaLooker.users t
+            FROM .users t
         `})
     return resutls.results.map((x)=> {
         return  {id:x.id,email:x.email,isAdmin:x.isAdmin}})
@@ -306,10 +306,10 @@ export class ManagmentRouter{
             e.id as eId,
             t.id as tId,
             u.id as uId 
-            from KafkaLooker.map_topics mt
-                LEFT join KafkaLooker.dim_topics t on t.id = mt.topicId
-                LEFT join KafkaLooker.dim_envierments e on e.id  = t.envId
-                LEFT join KafkaLooker.users u on u.id  = mt.userId
+            from .map_topics mt
+                LEFT join .dim_topics t on t.id = mt.topicId
+                LEFT join .dim_envierments e on e.id  = t.envId
+                LEFT join .users u on u.id  = mt.userId
          `})
 
         return resutls.results;

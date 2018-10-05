@@ -18,7 +18,7 @@ export class JWTAuthMiddleware {
                 console.error(`token format is not valid header: ${bearerHeader}`);
                 res.json({success: false, message: 'Authentication failed'});
             }else {
-                jwt.verify(bearer[1], this.config['SECRET_KEY'], (err, decoded) => {
+                jwt.verify(bearer[1], this.config.authConfig['SECRET_KEY'], (err, decoded) => {
                     if (err) {
                         console.error(`token is not valid ${bearer[1]}`);
                         res.json({success: false, message: 'Authentication failed'});

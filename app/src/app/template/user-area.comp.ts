@@ -26,7 +26,8 @@ export class UserAreaComp implements OnInit {
 
   ngOnInit() {
     this.nbMenuService.onItemClick()
-      .subscribe(title => {
+      .subscribe(click => {
+        if(click.item.title != "Log out") return
         this.authenticationService.logout();
         setTimeout(() => {
           this.router.navigate(['/login']);

@@ -18,21 +18,21 @@ export class AuthenticationRouter{
     @Inject(IDbHandler) private readonly dbHandler:IHandler<DBAction>,
     @Inject(ILoggerHandler) private readonly logger:IHandler<LoggerAction>,
     @Inject(JWTAuthMiddleware) private readonly jwtMiddleware: JWTAuthMiddleware,
-    @Inject('global-config') private readonly authConfig:{googleConfig:any,SECRET_KEY:string}){
+    @Inject('global-config') private readonly config:any){
   }
 
   register = (app) => {
     app.use(passport.initialize());
     app.use(passport.session());
 
-    passport.use(new this.googleStrategy(this.authConfig.googleConfig,
+    passport.use(new this.googleStrategy(this.config.authConfig.googleConfig,
      async (request, accessToken, refreshToken, profile, done) => {
         let userId = await User.getUserIdByEmail(profile.email,this.dbHandler);
         if(!userId) {
           done(null,`UnAuthoraized`)
           return;
         }
-        const token = jwt.sign(userId, this.authConfig.SECRET_KEY);
+        const token = jwt.sign(userId, this.config.authConfig.SECRET_KEY);
         let user = await User.buildUserObjectById(userId,this.dbHandler,profile);
         user.token = token;
         done(null, user);
@@ -47,7 +47,7 @@ export class AuthenticationRouter{
       cb(null, obj);
     });
 
-    this.initRouter(app,this.authConfig);
+    this.initRouter(app,this.config);
   }
 
 

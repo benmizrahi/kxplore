@@ -18,14 +18,15 @@ export class IDbHandler implements IHandler<DBAction> {
 
   //connection to mysql
   constructor(@Inject(ILoggerHandler) private readonly logger: IHandler<LoggerAction>,
-    @Inject('global-config') private readonly config: {mysql:{host,user,password,database}}){
+    @Inject('global-config') private readonly config: {mysql:{host,user,password,database,port}}){
     this.logger = logger;
     this.config = config;
     this.connection = mysql.createConnection({
-        host     : config.mysql.host,
-        user     : config.mysql.user,
-        password : config.mysql.password,
-        database : config.mysql.database
+      host     : this.config.mysql.host,
+      port: this.config.mysql.port,
+      user     : this.config.mysql.user,
+      password : this.config.mysql.password,
+      database : this.config.mysql.database
       });
 
     this.connection.connect();
