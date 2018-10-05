@@ -1,14 +1,11 @@
-# Kxplore - explore Kafka messages in a different way
-
-Kxplore is a explorer tool for Apache Kafka
-
+## Kxplore - explore Kafka messages in a different way
 ## Montivation
-Our mission is to create a simple and stable tool that can give us the ability to see data in our Kafka topics - Kxplore containes is a UI layer over Kafka consumer that gives powefull tools over you're Kafka cluster.
+Our mission is to create a simple and stable tool that can give us the ability to explore data in our Kafka topics - Kxplore containes is a UI layer over Kafka consumer that gives powefull tools over you're Kafka cluster.
 This product was born after we were seeking for a Kafka management tool that can give also a gimes of the
 
 ### Features Included
  - SQL Like syntax for filter messages
- - Javascript expression handling to apply tranformtion over Kafka Messages 
+ - Javascript expression handling to apply transformation over Kafka Messages 
  - Export messages to JSON, CSV files.
  - Charts view over Data stream
 
