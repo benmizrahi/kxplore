@@ -10,7 +10,7 @@ import { NbSidebarService } from '@nebular/theme';
   template: `
         <nb-layout>
           <nb-layout-header  *ngIf="authenticationService.isLogedIn()" fixed>
-              <div class="header-container left" style="width: 88%;">
+              <div class="header-container left" style="width: 86%;">
                   <div  class="logo-containter">
                       <a class="navigation" (click)="toggle()">
                         <i class="nb-menu"></i>

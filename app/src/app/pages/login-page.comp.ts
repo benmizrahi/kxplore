@@ -2,18 +2,32 @@ import {Component, Input, OnInit} from '@angular/core';
 import {AuthenticationService} from "../services/authentication.service";
 import {ActivatedRoute, Params, Router} from "@angular/router";
 import {Observable} from "rxjs/Observable";
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'login-comp',
   template: `
     <div class="warrper">
-      <div class="form">
-        <div class="header">Kxplore Login </div>
-        <img src="http://www.androidpolice.com/wp-content/themes/ap2/ap_resize/ap_resize.php?src=http%3A%2F%2Fwww.androidpolice.com%2Fwp-content%2Fuploads%2F2015%2F10%2Fnexus2cee_Search-Thumb-150x150.png&w=150&h=150&zc=3">
-        <p>Login With Google Account</p>
-        <button (click)="login()" >Sign in</button>
+    <form action="{{getPostURL()}}" method="post" #form >
+      <div class="form" >
+          <div class="form-group">
+              <input class="form-control"  name="email" placeholder="Email" type="email">
+          </div>
+          <div  class="form-group">
+            <input class="form-control"  name="password" placeholder="Password" type="password">
+        </div>
+        <div  class="form-group">
+         <input class="button" type="submit" value="Submit" (click)="form.submit()"/>
+        </div>
+        <div class="form-group">
+           <label >Or</label>
+        </div>
+        <div (click)="login()" >
+           <img src="http://www.androidpolice.com/wp-content/themes/ap2/ap_resize/ap_resize.php?src=http%3A%2F%2Fwww.androidpolice.com%2Fwp-content%2Fuploads%2F2015%2F10%2Fnexus2cee_Search-Thumb-150x150.png&w=150&h=150&zc=3">
+        </div>
         <div class="error-message" *ngIf="error">{{error }} :( </div>
       </div>
+      </form>
     </div>
   `,
   styles:[
@@ -47,10 +61,11 @@ import {Observable} from "rxjs/Observable";
 
       img {
         display: block;
-        width: 80px;
-        margin: 30px auto;
+        width: 71px;
+        margin: 0 auto;
         box-shadow: 0 5px 10px -7px #333333;
         border-radius: 50%;
+        cursor: pointer;
       }
 
       .form {
@@ -79,7 +94,7 @@ import {Observable} from "rxjs/Observable";
         margin: 20px auto 20px auto;
       }
 
-      button {
+      .button {
         border-radius: 100px;
         border: none;
         background: #719BE6;
@@ -87,9 +102,9 @@ import {Observable} from "rxjs/Observable";
         padding: 10px;
         color: #FFFFFF;
         margin-top: 25px;
-        box-shadow: 0 2px 10px -3px #719BE6;
+        box-shadow: 0 2px 10px -3px #658fd8;
         display: block;
-        margin: 55px auto 10px auto;
+        margin: 0 auto;
       }
 
       a {
@@ -113,13 +128,23 @@ import {Observable} from "rxjs/Observable";
 export class LoginPageComp{
 
   error = null;
+  email = null;
+  password = null;
+
   constructor(private  authenticationService:AuthenticationService){ 
     this.error = location.search.indexOf("UnAuthoraized") > -1 ? "UnAuthoraized Exception" :
     location.search.indexOf("error") > -1 ? "Internal Server Error" : ""
    }
 
+   signIn = () => {
+    this.authenticationService.signIn(this.email,this.password);
+   }
 
   login = ()=>{
     this.authenticationService.login();
+  }
+
+  getPostURL = () => {
+    return  "/auth/signin"
   }
 }

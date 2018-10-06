@@ -7,25 +7,33 @@ import { LoggerAction, DBAction } from '../interfaces/enums';
 import { JWTAuthMiddleware } from '../middlewares/jwt-auth-middleware';
 import { IDbHandler } from '../handlers/dbHandler';
 import { ILoggerHandler } from '../handlers/loggerHandler';
+const googleStrategy = require( 'passport-google-oauth2' ).Strategy;
+const localStrategy = require('passport-local').Strategy;
 const passport  = require( 'passport');
 
 @Injectable()
 export class AuthenticationRouter{
- 
-  private googleStrategy = require( 'passport-google-oauth2' ).Strategy;
 
   constructor(
     @Inject(IDbHandler) private readonly dbHandler:IHandler<DBAction>,
     @Inject(ILoggerHandler) private readonly logger:IHandler<LoggerAction>,
     @Inject(JWTAuthMiddleware) private readonly jwtMiddleware: JWTAuthMiddleware,
     @Inject('global-config') private readonly config:any){
+      
+      try {
+      User.createAdminUser(config.authConfig.superuser.user,jwt.sign(
+        config.authConfig.superuser.password, this.config.authConfig.SECRET_KEY),dbHandler);
+      }
+      catch(ex){
+          console.log(`unable to create superuser!`)
+      }
   }
 
   register = (app) => {
     app.use(passport.initialize());
     app.use(passport.session());
 
-    passport.use(new this.googleStrategy(this.config.authConfig.googleConfig,
+    passport.use(new googleStrategy(this.config.authConfig.googleConfig,
      async (request, accessToken, refreshToken, profile, done) => {
         let userId = await User.getUserIdByEmail(profile.email,this.dbHandler);
         if(!userId) {
@@ -34,10 +42,26 @@ export class AuthenticationRouter{
         }
         const token = jwt.sign(userId, this.config.authConfig.SECRET_KEY);
         let user = await User.buildUserObjectById(userId,this.dbHandler,profile);
-        user.token = token;
+        user.sessionToken = token;
         done(null, user);
       }
     ));
+
+    passport.use(new localStrategy({
+      usernameField: 'email',
+      passwordField: 'password',
+      session: false
+    },(username, password,done) => {
+          User.getUserIdByEmail(username,this.dbHandler).then((user:any) =>{
+          if(!user) return done(null, false);
+          if (!this.verifyPassword(password,user)) { return done(null, false); }
+          const token = jwt.sign(user.id, this.config.authConfig.SECRET_KEY);
+          user.sessionToken = token
+          return done(null, user);
+      }).catch(e=>{
+        return done(e)
+      });
+  }));
 
     passport.serializeUser((user, cb) => {
       cb(null, user);
@@ -64,7 +88,7 @@ export class AuthenticationRouter{
         failureRedirect:  config['loginRedirect'] + '/login'
       }),(req,res)=>{
         if(req.user !== "UnAuthoraized"){
-         res.redirect(config['loginRedirect'] + "/?access_token=" + req.user.token);
+         res.redirect(config['loginRedirect'] + "/?access_token=" + req.user.sessionToken);
         }else{
           res.redirect(config['loginRedirect'] + "/login?UnAuthoraized");
         }
@@ -86,20 +110,17 @@ export class AuthenticationRouter{
         res.send(user);
     });
 
-  };
+    app.post('/auth/signin', function(req, res, next) {
+      passport.authenticate('local', function(err, user, info) {
+        if (err) { return next(err); }
+        if (!user) { return res.redirect('/login'); }
+        res.redirect(config['loginRedirect'] + "/?access_token=" + user.sessionToken);
+      })(req, res, next);
+    });
+  }
 
-  private extractProfile (profile,token):User {
-    
-    let imageUrl = '';
-    if (profile.photos && profile.photos.length) {
-      imageUrl = profile.photos[0].value;
-    }
-
-    let userEntity = new User();
-    userEntity.id = profile.id
-    userEntity.displayName = profile.displayName
-    userEntity.imageUrl = imageUrl
-    userEntity.token = token
-    return userEntity
+  private verifyPassword = (userPassword,dbUser) => {
+    const token = jwt.sign(userPassword, this.config.authConfig.SECRET_KEY);
+    return dbUser.password === token
   }
 }

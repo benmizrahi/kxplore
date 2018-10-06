@@ -9,7 +9,7 @@
             "request": "launch",
             "name": "Launch Program",
             "env": {
-                "CONFIG_PATH":"${workspaceFolder}/env.json",
+                "CONFIG_PATH":"${workspaceFolder}/env.dev.json",
                 "BASE_DOMAIN_URL":"http://localhost:3000"
             },
             "program": "${workspaceFolder}/startup.js"
