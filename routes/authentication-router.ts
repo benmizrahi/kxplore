@@ -19,6 +19,14 @@ export class AuthenticationRouter{
     @Inject(ILoggerHandler) private readonly logger:IHandler<LoggerAction>,
     @Inject(JWTAuthMiddleware) private readonly jwtMiddleware: JWTAuthMiddleware,
     @Inject('global-config') private readonly config:any){
+      
+      try {
+      User.createAdminUser(config.authConfig.superuser.user,jwt.sign(
+        config.authConfig.superuser.password, this.config.authConfig.SECRET_KEY),dbHandler);
+      }
+      catch(ex){
+          console.log(`unable to create superuser!`)
+      }
   }
 
   register = (app) => {
@@ -102,22 +110,17 @@ export class AuthenticationRouter{
         res.send(user);
     });
 
-
-    app.post('/auth/signin',
-      function(req,res,next){
-        passport.authenticate("local", function(err, user, info){
-          if(!user){
-            res.redirect(config['loginRedirect'] + "/login?UnAuthoraized");
-          }else{
-            res.redirect(config['loginRedirect'] + "/?access_token=" + req.user.sessionToken);
-          }
-        })(req,res,next); 
-      })
+    app.post('/auth/signin', function(req, res, next) {
+      passport.authenticate('local', function(err, user, info) {
+        if (err) { return next(err); }
+        if (!user) { return res.redirect('/login'); }
+        res.redirect(config['loginRedirect'] + "/?access_token=" + user.sessionToken);
+      })(req, res, next);
+    });
   }
 
   private verifyPassword = (userPassword,dbUser) => {
     const token = jwt.sign(userPassword, this.config.authConfig.SECRET_KEY);
     return dbUser.password === token
   }
-
 }

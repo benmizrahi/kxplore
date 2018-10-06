@@ -4,6 +4,7 @@ import { IHandler } from "../interfaces/IHandler";
 import { DBAction, LoggerAction } from "../interfaces/enums";
 import { ILoggerHandler } from "../handlers/loggerHandler";
 import { JWTAuthMiddleware } from "../middlewares/jwt-auth-middleware";
+import { User } from "../dataModels/user";
 
 @Injectable()
 export class ManagmentRouter{
@@ -12,7 +13,7 @@ export class ManagmentRouter{
         @Inject(IDbHandler) private readonly dbHandler:IHandler<DBAction>,
         @Inject(ILoggerHandler) private readonly logger:IHandler<LoggerAction>,
         @Inject(JWTAuthMiddleware) private readonly jwtMiddleware: JWTAuthMiddleware,
-        @Inject('global-config') private readonly authConfig:{googleConfig:any,SECRET_KEY:string}){
+        @Inject('global-config') private readonly authConfig:{googleConfig:any,SECRET_KEY:string,superuser:any}){
       }
 
 

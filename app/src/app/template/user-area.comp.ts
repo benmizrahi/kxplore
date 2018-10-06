@@ -6,9 +6,17 @@ import { Router } from '@angular/router';
 
 @Component({
   selector: 'user-area',
-  template: ` <nb-user [name]="userProfileService.userProfile?.displayName" [nbContextMenu]="userMenu"
-  nbContextMenuTag="user-menu" [picture]="userProfileService?.userProfile.imageUrl" ></nb-user>`,
-  styles:[]
+  template: ` <nb-user style="float: left" [name]="userProfileService.userProfile?.displayName" [picture]="userProfileService?.userProfile.imageUrl" >
+    </nb-user>  
+    <i class="fa fa-sign-out signout" (click)="logOut()"></i>`,
+  styles:[`
+    .signout{
+      font-size: 29px;
+      margin-left: 12px;
+      margin-top: 5px;
+      
+    }
+  `]
 })
 
 export class UserAreaComp implements OnInit {
@@ -21,18 +29,13 @@ export class UserAreaComp implements OnInit {
     private router: Router){
     this.userProfileService = userProfileService;
   }
-
-  userMenu = [{ title: 'Log out' }];
-
   ngOnInit() {
-    this.nbMenuService.onItemClick()
-      .subscribe(click => {
-        if(click.item.title != "Log out") return
-        this.authenticationService.logout();
-        setTimeout(() => {
-          this.router.navigate(['/login']);
-        }, 2000);
-    });
+
+  }
+
+  logOut = () => {
+    this.authenticationService.logout();
+    this.router.navigate(['/login']);
   }
 
 }
