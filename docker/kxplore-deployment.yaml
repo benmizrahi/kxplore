@@ -21,13 +21,13 @@ spec:
           - mountPath: /secrets/cloudsql
             name: cloudsql-instance-credentials
             readOnly: true
-        - image: us.gcr.io/pdp-dev-195912/kxplore
+        - image: us.gcr.io/pdp-dev-195912/kxplore:1.0.3
           name: pdp-kxplore-app
           env:
           - name: CONFIG_PATH
             value: "/etc/kxplore/env.json"
           - name: BASE_DOMAIN_URL
-            value: "http://35.192.208.45/"
+            value: "http://app-test.kumoera.com/"
           volumeMounts:
           - mountPath: /etc/kxplore
             name: env-config

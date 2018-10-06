@@ -79,6 +79,50 @@ docker run -p 3000:3000 -e "CONFIG_PATH=/path/to/env.json" -e "BASE_DOMAIN_URL=h
 Now you can browse the app in http://localhost:3000/
 
 ### Configuration File
-...
+The Kxplore configuration file is a simple JSON file with arguments, you can set the PATH to the config file via the ENV parameter: CONFIG_PATH - the preferred location is /etc/kxplore/env.json
+
+
+Configuration Example:
+```
+
+{
+    "authConfig":{
+      "googleConfig":{
+        "clientID":  "GOOGLE_AUTH_CLIENT_ID", //google auth cardentials
+        "clientSecret": "GOOGLE_SECRET"  : //google auth cardentials
+      },
+      "SECRET_KEY":SECRET_KEY" // the secret key for encription
+    },
+    "mysql":{
+      "host":"127.0.0.1", //MYSQL host
+      "port":"3307", //MYSQL port
+      "user":"kxplore",
+      "password":"kxplore",
+      "database":"kxplore"
+    },
+    "kafkaConfig": { 
+      "messagePool":100, //how match data will be pulled from kafka each interval 
+      "minMessage":20, //min messages that triggers the consumer pool interval
+      "intervalMs": "1000", // pool interval in ms
+      "poolCount":10
+    },
+    // If planning to scale up the server - you need to configure redis to comunicate between each node
+    "redis-config":{
+      "host":"localhost", 
+      "port":"6379"
+    }
+  }
+
+
+```
 
 ### SQL Syntax
+
+The Kxplore tool has a fillter feature that gives the ability to filter and manipulate the stream data in real-time - here we will describe the syntax using the filter:
+
+1. select operators:
+ * `\*` - pull all JSON fields
+ * `field_name` | `field_name,field_name2` - pull the relevent field from the JSON - you can supply multiple fields with the comma (,) seperator.
+ * `"$field_name->new_name"` - renaming a filed name.
+ * `"$string_field.indexOf($string_field_2)->output"` - you can set any JavaScript manipulation you want.
+2. Where operator:
