@@ -8,13 +8,14 @@ export class User {
     imageUrl:string;
     displayName:string;
     envs:{ [env:string]:Array<string> };
-    token:string;
+    password:string;
+    sessionToken:string;
 
 
     static getUserIdByEmail = async (email,dbHanlder:IHandler<DBAction>) => {
         let res = await dbHanlder.handle({action:DBAction.executeSQL,payload:
-            `SELECT id from users where email = '${email}'`})
-        return res.results.length > 0 ? res.results[0].id : null
+            `SELECT id,password from users where email = '${email}'`})
+        return res.results.length > 0 ? {id:res.results[0].id,token:res.results[0].password}  : null
     }
 
     static buildUserObjectById = async (id,dbHanlder:IHandler<DBAction>,profile?):Promise<User>=>{
@@ -54,6 +55,5 @@ export class User {
         return u;
 
     }
-
     
 }

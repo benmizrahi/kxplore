@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import 'rxjs/add/operator/map'
 import { environment } from '../../environments/environment';
 
@@ -11,6 +11,17 @@ export class AuthenticationService {
 
   login() {
     location.href= environment.endpoint + "auth/login";
+  }
+
+  signIn = (user,pass) =>{
+    return new Promise((resolve, reject) => {
+      this.http
+        .post(environment.endpoint + "auth/signin",{email:user,password:pass})
+        .subscribe(response => {
+          debugger;
+          resolve(response);
+        })
+    })
   }
 
   isLogedIn = () =>{
