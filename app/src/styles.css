@@ -1,3 +1,5 @@
+@import "~ng-pick-datetime/assets/style/picker.min.css";
+
 .nb-theme-default nb-tabset nb-tab{
   overflow-x: hidden;
     overflow-y: scroll;

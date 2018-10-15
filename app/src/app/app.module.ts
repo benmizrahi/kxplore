@@ -39,6 +39,7 @@ import { EditModule } from './pages/edit/edit.module';
 import { AppCommonModule } from './pages/common/app-common.module';
 import { KChartsModule } from './pages/charts/charts.module';
 
+
 const routes: Routes = [
   {
     path: '',

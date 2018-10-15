@@ -19,17 +19,16 @@ export class StreamConsumerService {
     return this.connections;
   }
 
-  startConnection(topic: string,env:string,executers:number,callback:any){
+  startConnection(topic: string,env:string,timestamp:number,callback:any){
     this.activeTab = topic + "|" + env;
  
     if(this.isStreamExsits(topic,env)){
       return this.connections[topic + "|" + env];
     } 
     else{
-      this.connections[topic + "|" + env] = new ConsumerObject(this.socketKafkaService,topic,env,callback);
+      this.connections[topic + "|" + env] = new ConsumerObject(this.socketKafkaService,topic,env,callback,timestamp);
     }
     this.connections[topic + "|" + env].start();
-    //this.chartOptions.legend.data.push(topic + "|" + env);
     return this.connections[topic + "|" + env];
   }
 

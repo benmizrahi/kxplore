@@ -19,7 +19,8 @@ export enum KafkaAction {
     disconnect,
     applyFilter,
     describe,
-    fatchFromTimestamp
+    fatchFromTimestamp,
+    setOffsets
 }
 
 export enum DBTables {

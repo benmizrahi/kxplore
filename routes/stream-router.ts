@@ -43,6 +43,8 @@ export class StreamRouter {
                     let handler:IHandlerResults<KafkaAction> = await this.kafkaHandler.handle({action:KafkaAction.connect,payload:{
                         env:data.env,   
                         topic:data.topic,
+                        timestamp:data.timestamp,
+                        userId:client.decoded,
                         dataCallback:this.publishdata(client,data,io)
                     }})
                     let current = data;

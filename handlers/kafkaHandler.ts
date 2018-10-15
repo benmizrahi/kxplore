@@ -19,7 +19,8 @@ export class KafkaHandler implements IHandler<KafkaAction>{
 
     constructor(@Inject('global-config') private readonly config:{kafkaConfig:{messagePool:number,minMessage:number,intervalMs:number,poolCount:number}},
              @Inject(ILoggerHandler) private readonly logger:IHandler<LoggerAction>,
-            @Inject(IDbHandler) private readonly dbHandler:IHandler<DBAction>){ }
+            @Inject(IDbHandler) private readonly dbHandler:IHandler<DBAction>){
+             }
 
     handle(handleParams: IHandlerAction<KafkaAction>): Promise<IHandlerResults<KafkaAction>> {
         return  new Promise(async(resolve, reject)=>{
@@ -29,6 +30,10 @@ export class KafkaHandler implements IHandler<KafkaAction>{
             switch(handleParams.action){
                 case KafkaAction.connect:
                     try {
+                        if(handleParams.payload.timestamp && handleParams.payload.timestamp > 0){
+                           // let results = await this.handle({action:KafkaAction.fatchFromTimestamp,payload:handleParams.payload})
+                        }
+
                         const id = await this.initKafka(handleParams.payload)
                         console.info(`instnace of ${JSON.stringify(handleParams.payload)} created sucssesfully!`) 
                         resolve({status:true,action:handleParams.action,results:id})
@@ -60,11 +65,15 @@ export class KafkaHandler implements IHandler<KafkaAction>{
                         });
                     });
                 break;
+                case KafkaAction.setOffsets:
+
+                break;
                 case KafkaAction.fatchFromTimestamp:
                     let results = await this.handle({action:KafkaAction.describe,payload:{env:handleParams.payload.env}})
                     let partitons =  Object.keys(results.results[1].metadata[handleParams.payload.topic])
                     let actionResults = await  this.getOffsetsInTimeStamp(handleParams.payload.env,handleParams.payload.topic,partitons,handleParams.payload.timestamp)
-                    resolve({status:true,action:handleParams.action,results:actionResults});
+                    let reset  = await this.setPartitonsOffsets(handleParams.payload.env,handleParams.payload.topic,actionResults,handleParams.payload.userId)
+                    resolve({status:true,action:handleParams.action,results:reset});
                 break;
             }
         });
@@ -74,7 +83,7 @@ export class KafkaHandler implements IHandler<KafkaAction>{
         this.connections[env].topics[topic].filter = filter;
     }
 
-    private initKafka = ({env,topic,dataCallback}) =>{
+    private initKafka = ({env,topic,userId,dataCallback}) =>{
         return  new Promise<string>((resolve,reject)=>{
             const id = this.guid()
             if(this.connections[env] && this.connections[env].topics[topic] &&  this.connections[env].topics[topic].instance) {
@@ -89,7 +98,7 @@ export class KafkaHandler implements IHandler<KafkaAction>{
             }
             let kafkaConfig =  this.envierments[env];
             const consumer = new Consumer();
-            consumer.consume<any>(topic,env,kafkaConfig['zookeeperUrl'],kafkaConfig['groupId'] + id,
+            consumer.consume<any>(topic,env,kafkaConfig['zookeeperUrl'],kafkaConfig['groupId'] + '___' + userId,
              4, this.topicMessageHandler,this);
 
                 if(!this.connections[env])
@@ -189,21 +198,11 @@ export class KafkaHandler implements IHandler<KafkaAction>{
 
             
         })
-
-        // let consumer = new kafka.HighLevelConsumer(
-        //         consumerClient,
-        //         [
-        //             { topic: 'myTopic', partition: 0, fromOffset: -1 }
-        //         ],
-        //         {
-        //             autoCommit: false
-        //         }
-        // );
     }
 
     private getOffsetsInTimeStamp =  (env,topic,partitons,timestamp) => {
         return new Promise<boolean>((resolve,reject)=>{
-            let client = new kafka.Client(env.zookeeperUrl);
+            let client = kafka.Client(this.envierments[env]['zookeeperUrl'] + '/');
             var offset = new kafka.Offset(client)
             offset.fetch( partitons.map(x=>{
                 return { topic: topic, partition: x, time:timestamp, maxNum: 1 }
@@ -218,6 +217,24 @@ export class KafkaHandler implements IHandler<KafkaAction>{
             });
         })
     }
+
+    private setPartitonsOffsets = (env,topic,offsets,userId) =>{
+        return new Promise<boolean>((resolve,reject)=>{
+            let client = kafka.Client(this.envierments[env]['zookeeperUrl'] + '/');
+            var offset = new kafka.Offset(client)
+            offset.commit(this.envierments[env]['groupId'] + '_' + userId ,
+                Object.keys(offsets[topic]).map(x=>{
+                    return {
+                        topic:topic,
+                        partition:x,
+                        offset:offsets[topic][x]
+                    }
+                }), function (err, data) {
+
+                    console.log('reset')
+            });
+    })
+}
 
 }
 

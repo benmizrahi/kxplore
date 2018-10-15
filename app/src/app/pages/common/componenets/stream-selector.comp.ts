@@ -2,6 +2,7 @@ import { Component } from "@angular/core";
 import { StreamConsumerService } from "../../../services/stream-consumer.service";
 import { ConsumerObject } from "../../../objects/consumer-object";
 import { UserProfileService } from "../../../services/user-profile.service";
+declare var moment:Function;
 
 @Component({
     selector: 'stream-selector',
@@ -20,16 +21,19 @@ import { UserProfileService } from "../../../services/user-profile.service";
             </div>
             </div>
             <div class="col-lg-4">
-            <div class="row"  *ngIf="selectedEnv"> 
-                <div class="col-lg-6 header-text">
-                    <span>Topic: </span>
-                </div>
-                <div class="col-lg-6">
+                <div class="row"  *ngIf="selectedEnv"> 
+                    <div class="col-lg-6 header-text">
+                        <span>Topic: </span>
+                    </div>
+                    <div class="col-lg-4">
                     <select class="form-control"  [(ngModel)]="selectedTopic">
                         <option *ngFor="let topic of getTopicsInEnv(selectedEnv)">{{topic}}</option>
                     </select>
                     </div>
                 </div>
+            </div>
+            <div class="col-lg-2" *ngIf="selectedTopic && selectedEnv">
+                <input class="form-control" [(ngModel)]="selectedTimestamp" placeholder="Timestamp" type="number">
             </div>
             <div class="col-lg-2" style="text-align: right;">
             <button *ngIf="selectedTopic && selectedEnv" class="btn btn-hero-warning" (click)="startStream()">Pull</button>
@@ -46,14 +50,15 @@ import { UserProfileService } from "../../../services/user-profile.service";
     ]
 })
 export class StreamSelector{
-   
+    selectedDate: string;
     selectedFilter:any = null;
     selectedTopic:string =  null ;
     selectedEnv:string = null;
+    selectedTimestamp:number = null
     executers:number = 1;
     constructor(private readonly streamConsumerService:StreamConsumerService,
         private readonly userProfileService:UserProfileService){
-
+            this.selectedDate = moment().format('DD/MM/YYYY'); 
     }
     startStream = () =>{
 
@@ -62,7 +67,7 @@ export class StreamSelector{
           return
         }
     
-        this.streamConsumerService.startConnection(this.selectedTopic,this.selectedEnv,this.executers,
+        this.streamConsumerService.startConnection(this.selectedTopic,this.selectedEnv,this.selectedTimestamp,
           (res,object:ConsumerObject)=>{
             if(res.topic != object.topic || res.env != object.env) return ;
             object.data = res.messages
