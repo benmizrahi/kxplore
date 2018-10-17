@@ -149,6 +149,7 @@ export class KafkaConsumer {
   constructor(streamConsumerService:StreamConsumerService,
    private readonly userProfileService:UserProfileService){
     this.streamConsumerService = streamConsumerService;
+    this.userProfileService.reloadUserProfile();
   }
 
   getActiveTab = () =>{

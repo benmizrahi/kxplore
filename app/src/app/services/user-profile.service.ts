@@ -25,6 +25,10 @@ export class UserProfileService {
     }
   };
 
+  reloadUserProfile = async () =>{
+    let results =  await  this.loadUser()
+  }
+
   isAdmin = () => {
     if(this.userProfile && this.userProfile.admin == "1") return true
     return false
