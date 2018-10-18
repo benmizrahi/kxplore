@@ -1,4 +1,5 @@
-@import "~ng-pick-datetime/assets/style/picker.min.css";
+@import '~bootstrap/dist/css/bootstrap.min.css';
+@import '~open-iconic/font/css/open-iconic-bootstrap.css';
 
 .nb-theme-default nb-tabset nb-tab{
   overflow-x: hidden;
@@ -299,14 +300,22 @@
   cursor: pointer;
   clear: both;
   text-align: left;
+  margin: 0 auto;
+  width: 100%;
+  text-align: center;
 }
 
 .stream-controller > i {
-  float: right;
-  font-size: 25px;
-  padding: 0px;
-  margin-bottom: 12px;
+  float: left;
+  font-size: 32px;
+  margin-left: 15px;
+  margin-bottom: 18px;
+  margin-right: 12px;
   cursor: pointer;
+  text-align: center;
+  padding-top: 17px;
+}
+.stream-controller > i:nth-child(3) {
   clear: both;
 }
 

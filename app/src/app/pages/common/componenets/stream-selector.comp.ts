@@ -63,8 +63,7 @@ export class StreamSelector{
     startStream = () =>{
 
         if(this.streamConsumerService.isStreamExsits(this.selectedTopic,this.selectedEnv)){
-          //TODO: write someting
-          return
+            alert('please delete the connection before reconnect!')
         }
     
         this.streamConsumerService.startConnection(this.selectedTopic,this.selectedEnv,this.selectedTimestamp,

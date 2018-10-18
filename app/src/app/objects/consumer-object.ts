@@ -24,6 +24,10 @@ export class ConsumerObject{
 
   start(){
     this.socketKafkaService.emit("start-consumer", {topic:this.topic,env: this.env,timestamp:this.timestamp,filter:this.filterObject.value});
+    this.socketKafkaService.fromEvent(`consumer-id-${this.topic}-${this.env}-error`).subscribe((res:any)=>{
+      alert(JSON.stringify(res))
+      this.streamAlive = false;
+   });
     this.socketKafkaService.fromEvent(`akk-consumer-id-${this.topic}-${this.env}`).subscribe((res:any)=>{
       this.consumerid = res.id
       this.socketKafkaService.fromEvent(`messages-list-${this.topic}-${this.env}`).subscribe((res)=>{
@@ -39,6 +43,7 @@ export class ConsumerObject{
     })
     this.socketKafkaService.emit("discribe-env",{env: this.env});
   }
+
 
   stop(){
     this.socketKafkaService.emit("stop-consumer", {topic:this.topic,env: this.env,id:this.consumerid});

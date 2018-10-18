@@ -57,11 +57,11 @@ export class StreamRouter {
                         clientValues.push(current)
                     }
                     connections.set(client,clientValues);
-                    console.log(`createdclient id = ${handler.results}`)
+                    console.log(`created client id = ${handler.results}`)
                     client.emit(`akk-consumer-id-${data.topic}-${data.env}`, {id:handler.results});
                 }
                 catch(e){
-                    
+                    client.emit(`consumer-id-${data.topic}-${data.env}-error`, e);
                 }
             });
 

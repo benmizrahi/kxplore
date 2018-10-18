@@ -20,7 +20,8 @@ export enum KafkaAction {
     applyFilter,
     describe,
     fatchFromTimestamp,
-    setOffsets
+    setOffsets,
+    reloadEnvierment
 }
 
 export enum DBTables {

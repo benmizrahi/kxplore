@@ -31,9 +31,7 @@ import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
 import { MomentModule } from 'ngx-moment';
 import { Ng2SmartTableModule} from 'ng2-smart-table';
 import { FilterEditor } from './pages/filter-editor.comp';
-
 import { AngularFontAwesomeModule } from 'angular-font-awesome';
-
 import {NgXLightTableModule} from 'ngx-lighttable';
 import { EditModule } from './pages/edit/edit.module';
 import { AppCommonModule } from './pages/common/app-common.module';

@@ -12,29 +12,27 @@ export class Consumer {
 
     isActive = false;
 
-    private connect (topic: string,connectionString:string,clientId:string) {
+    private connect (topic: string,connectionString:string,clientId:string,envOptions,offsets) {
         let self = this;
 
         self.client = new Client(connectionString, clientId);
-        self.consumer = new HighLevelConsumer(this.client, [{ topic: topic }], { 
-            groupId: clientId,
-            fetchMaxWaitMs: 100,
-            fetchMinBytes: 1,
-            fetchMaxBytes: 1024 * 10,
-            fromOffset: true,
-            fromBeginning: false, 
-            autoCommit: true,
-            autoCommitMsgCount: 100,
-            autoCommitIntervalMs: 5000});
+        let offset_values = Object.keys(offsets[topic]).map(x=>{
+            return {
+                topic:topic,
+                partition:x,
+                offset:offsets[topic][x][0]
+            }
+        })
+        self.consumer = new HighLevelConsumer(this.client,offset_values , envOptions);
         self.offset = new Offset(self.client);
         
         console.info(`Listening for the ${topic} messages...`);
     }
 
 
-    public consume<T>(topic: string,env:string,connectionString:string,groupId:string, threads: number, callback: (msg: T,topic:string,env:string, done: Function,context:any) => void,context:any): void {
+    public consume<T>(topic: string,env:string,connectionString:string,groupId:string, threads: number,envOptions:any,offsets:Array<any>, callback: (msg: T,topic:string,env:string, done: Function,context:any) => void,context:any): void {  
         let self = this;
-        self.connect(topic,connectionString,groupId);
+        self.connect(topic,connectionString,groupId,envOptions,offsets);
 
         process.on('SIGINT', () => self.consumer.close(true, () => process.exit()));
 
@@ -42,7 +40,7 @@ export class Consumer {
             const failedToRebalanceConsumerError = err.message && err.message.includes('FailedToRebalanceConsumerError');
             const leaderNotAvailable = err.message && err.message.includes('LeaderNotAvailable');
             if (failedToRebalanceConsumerError || leaderNotAvailable) {
-                return setImmediate(() => self.consumer.close(true, () => self.connect(topic,connectionString,groupId)));
+                return setImmediate(() => self.consumer.close(true, () => self.connect(topic,connectionString,groupId,envOptions,offsets)));
             }
             console.error(`Kafka error happened: ${JSON.stringify(err)}`);
         });
@@ -69,9 +67,23 @@ export class Consumer {
         self.isActive = true;
     }
 
+
+    // private resetConsumerOffsets = (topic,offsets) => {
+    //     return new Promise<boolean>((resolve,reject)=>{
+    //         let offsets =  Object.keys(offsets[topic]).map(x=>{
+    //             return {
+    //                 topic:topic,
+    //                 partition:x,
+    //                 offset:offsets[topic][x][0]
+    //             }
+    //         })
+    //     })
+    // }
+
     private messageListener (q: any) {
         return (messageWrapper: any)  => {
-            let message: any = JSON.parse(messageWrapper.value);
+            try{
+            let message: any = messageWrapper.value.split('\n').map(x=>JSON.parse(x));
             if(!isArray(message))
                 message = [message]
                 message = message.map(x=>{
@@ -83,6 +95,10 @@ export class Consumer {
             })
             q.push(message);
             this.consumer.pause();
+            }
+            catch(e){
+                console.log(1);
+            }
         };
     }
 

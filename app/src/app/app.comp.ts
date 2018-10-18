@@ -28,8 +28,8 @@ import { NbSidebarService } from '@nebular/theme';
                   </nb-action>
               </nb-actions>
               </div>
-          </nb-layout-header>
-          <nb-sidebar state="collapsed" *ngIf="userProfileService.isAdmin()" >
+          </nb-layout-header> 
+          <nb-sidebar state="collapsed" *ngIf="authenticationService.isLogedIn() && userProfileService.isAdmin()" >
             <nb-menu [items]="items">
             </nb-menu>
           </nb-sidebar>

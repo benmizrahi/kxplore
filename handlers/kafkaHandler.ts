@@ -14,7 +14,7 @@ export class KafkaHandler implements IHandler<KafkaAction>{
     
     private connections:{ [env: string]: {topics: { [topic:string]:{instance:Consumer, pool:Array<any>,interval:any,reconnect:boolean,filter:string,callbacks:{[id:string]: Function }}  } } } = { };
 
-    private envierments:{[env:string]:Object} = null
+    private envierments:{[env:string]:any} = null
 
 
     constructor(@Inject('global-config') private readonly config:{kafkaConfig:{messagePool:number,minMessage:number,intervalMs:number,poolCount:number}},
@@ -30,11 +30,10 @@ export class KafkaHandler implements IHandler<KafkaAction>{
             switch(handleParams.action){
                 case KafkaAction.connect:
                     try {
-                        if(handleParams.payload.timestamp && handleParams.payload.timestamp > 0){
-                           // let results = await this.handle({action:KafkaAction.fatchFromTimestamp,payload:handleParams.payload})
-                        }
-
-                        const id = await this.initKafka(handleParams.payload)
+                         const results=  await this.handle({action:KafkaAction.describe,payload:handleParams.payload})
+                         const rest = await this.getLatestOffsets(handleParams.payload.env,
+                             handleParams.payload.topic,Object.keys(results.results[1].metadata[handleParams.payload.topic]),handleParams.payload.userId,handleParams.payload.timestamp)
+                        const id = await this.initKafka(handleParams.payload,rest)
                         console.info(`instnace of ${JSON.stringify(handleParams.payload)} created sucssesfully!`) 
                         resolve({status:true,action:handleParams.action,results:id})
                     }
@@ -65,15 +64,16 @@ export class KafkaHandler implements IHandler<KafkaAction>{
                         });
                     });
                 break;
-                case KafkaAction.setOffsets:
-
-                break;
                 case KafkaAction.fatchFromTimestamp:
                     let results = await this.handle({action:KafkaAction.describe,payload:{env:handleParams.payload.env}})
                     let partitons =  Object.keys(results.results[1].metadata[handleParams.payload.topic])
                     let actionResults = await  this.getOffsetsInTimeStamp(handleParams.payload.env,handleParams.payload.topic,partitons,handleParams.payload.timestamp)
                     let reset  = await this.setPartitonsOffsets(handleParams.payload.env,handleParams.payload.topic,actionResults,handleParams.payload.userId)
                     resolve({status:true,action:handleParams.action,results:reset});
+                break;
+                case KafkaAction.reloadEnvierment:
+                 await this.initEnvs(); 
+                 resolve({status:true,action:handleParams.action});
                 break;
             }
         });
@@ -83,7 +83,7 @@ export class KafkaHandler implements IHandler<KafkaAction>{
         this.connections[env].topics[topic].filter = filter;
     }
 
-    private initKafka = ({env,topic,userId,dataCallback}) =>{
+    private initKafka = ({env,topic,userId,dataCallback},offsets?) =>{
         return  new Promise<string>((resolve,reject)=>{
             const id = this.guid()
             if(this.connections[env] && this.connections[env].topics[topic] &&  this.connections[env].topics[topic].instance) {
@@ -99,7 +99,7 @@ export class KafkaHandler implements IHandler<KafkaAction>{
             let kafkaConfig =  this.envierments[env];
             const consumer = new Consumer();
             consumer.consume<any>(topic,env,kafkaConfig['zookeeperUrl'],kafkaConfig['groupId'] + '___' + userId,
-             4, this.topicMessageHandler,this);
+             4,this.envierments[env].properties,offsets,this.topicMessageHandler,this);
 
                 if(!this.connections[env])
                     this.connections[env] = { topics:{} }
@@ -168,35 +168,32 @@ export class KafkaHandler implements IHandler<KafkaAction>{
         return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
     }
 
-    private resetConsumerOffsets = (env,topic) => {
+    private getLatestOffsets = (env,topic,partitons,userId,time) => {
         return new Promise<boolean>((resolve,reject)=>{
-            let client = new kafka.Client(env.zookeeperUrl);
+            console.log(this.envierments[env]['groupId'] + '___' + userId)
+            let client = new kafka.Client(this.envierments[env].zookeeperUrl,this.envierments[env]['groupId'] + '___' + userId);
             var offset = new kafka.Offset(client)
-            var consumer = new kafka.HighLevelConsumer(
-                client, [
-                {
-                    topic:topic
-                }],
-                {
-                    groupId: env.groupId,
-                    autoCommit: false
-                }
-             );
-            offset.fetchLatestOffsets([topic], (err, offsets) => {
-                if (err) {
-                    console.log(`error fetching latest offsets ${err}`)
-                    reject(err);
-                }else{
-                    var latest = 1
-                    Object.keys(offsets[topic]).forEach( o => {
-                        latest = offsets[topic][o] > latest ? offsets[topic][o] : latest
-                    })
-                    consumer.setOffset(topic, 0, latest-1)
-                }
-                resolve(true)
-            });
 
-            
+            offset.fetch( partitons.map(x=>{
+                return { topic: topic, partition: x, time:(time ? time : Date.now()) , maxNum: 1 }
+            }), (err, data) => {
+                console.log(`-2: ${JSON.stringify(data)}`)
+                    if(err){
+                        console.error(err);
+                        reject(err)
+                    }else{
+                        let isValid = true;
+                        Object.keys(data[topic])
+                        .forEach(partition => {
+                           isValid =  data[topic][partitons] != 0
+                        })
+                        if(isValid)
+                            resolve(data)
+                        else{
+                            reject({error:`timestamp not found is not valid!`,errorCode:1});
+                        }
+                    }
+            });
         })
     }
 
@@ -213,7 +210,6 @@ export class KafkaHandler implements IHandler<KafkaAction>{
                     }else{
                         resolve(data)
                     }
-
             });
         })
     }
@@ -227,11 +223,11 @@ export class KafkaHandler implements IHandler<KafkaAction>{
                     return {
                         topic:topic,
                         partition:x,
-                        offset:offsets[topic][x]
+                        offset:offsets[topic][x][0]
                     }
                 }), function (err, data) {
-
-                    console.log('reset')
+                    console.log(`offsets commited: ${JSON.stringify(data)}`)
+                    resolve(true);
             });
     })
 }

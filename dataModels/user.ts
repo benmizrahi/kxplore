@@ -35,7 +35,7 @@ export class User {
                 `SELECT u.id,u.isAdmin,u.email,up.displayName,up.image,e.envName,t.topicName
                 from users u
                 LEFT JOIN users_profile up on u.id = up.userId
-                LEFT JOIN map_topics mt on mt.userId = up.userId
+                LEFT JOIN map_topics mt on mt.userId = u.id
                 LEFT JOIN dim_topics t on t.id = mt.topicId
                 LEFT JOIN dim_envierments e on e.id = t.envId
                 where u.id = ${id}`})

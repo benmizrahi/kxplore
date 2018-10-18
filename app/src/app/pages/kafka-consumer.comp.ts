@@ -44,7 +44,7 @@ import { ConsumerObject } from '../objects/consumer-object';
                 </div>
            </nb-card-header>
            <nb-card-body>
-           <div class="lds-ripple" [ngStyle]="{'right': streamConsumerService.connectionsList[connection].selectedJSON ? '38%' : '6%'}" *ngIf=isStreamAlive(connection)><div></div><div></div></div>
+           <div class="lds-ripple" [ngStyle]="{'right': streamConsumerService.connectionsList[connection].selectedJSON ? '38%' : '5%'}" *ngIf=isStreamAlive(connection)><div></div><div></div></div>
              <consumer-wait *ngIf="!ifRowsExists(connection)" [title]="isStreamAlive(connection) ? 'Waiting For Data...' : 'Stream Lost :('" [showLoading]="isStreamAlive(connection)"></consumer-wait>
                 <div class="row" *ngIf="ifRowsExists(connection)" >
                   <div  class="header-clean" [ngClass]="{'col-lg-8': streamConsumerService.connectionsList[connection].selectedJSON,'col-lg-12':!streamConsumerService.connectionsList[connection].selectedJSON}">
