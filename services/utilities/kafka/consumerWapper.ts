@@ -1,11 +1,11 @@
 import { queue } from 'async';
-import { Client, HighLevelConsumer, Offset } from 'kafka-node';
+import { Client, Consumer, Offset } from 'kafka-node';
 import { isArray } from 'util';
 import { Func } from 'mocha';
 
-export class Consumer {
+export class ConsumerWapper {
     client: Client;
-    consumer: HighLevelConsumer;
+    consumer: Consumer;
     offset: Offset;
 
     listener:Func
@@ -19,11 +19,11 @@ export class Consumer {
         let offset_values = Object.keys(offsets[topic]).map(x=>{
             return {
                 topic:topic,
-                partition:x,
-                offset:offsets[topic][x][0]
+                partition:parseInt(x),
+                offset:offsets[topic][x]
             }
         })
-        self.consumer = new HighLevelConsumer(this.client,offset_values , envOptions);
+        self.consumer = new Consumer(this.client,[offset_values[0]] , envOptions);
         self.offset = new Offset(self.client);
         
         console.info(`Listening for the ${topic} messages...`);
@@ -37,7 +37,8 @@ export class Consumer {
         process.on('SIGINT', () => self.consumer.close(true, () => process.exit()));
 
         self.consumer.on('error', (err: any) => {
-            const failedToRebalanceConsumerError = err.message && err.message.includes('FailedToRebalanceConsumerError');
+            const failedToRebalanceConsumerError = err.message && err.message.includes('FailedToRebalanceConsumerError') 
+            || err.stack.includes('FailedToRebalanceConsumerError');
             const leaderNotAvailable = err.message && err.message.includes('LeaderNotAvailable');
             if (failedToRebalanceConsumerError || leaderNotAvailable) {
                 return setImmediate(() => self.consumer.close(true, () => self.connect(topic,connectionString,groupId,envOptions,offsets)));
@@ -46,12 +47,7 @@ export class Consumer {
         });
 
         self.consumer.on('offsetOutOfRange', function (topicObj: any) {
-            topicObj.maxNum = 2;
-            self.offset.fetch([topicObj], function (err: any, offsets: any) {
-                if (err) return console.error(err);
-                const min = Math.min(offsets[topicObj.topic][topicObj.partition]);
-                self.consumer.setOffset(topicObj.topic, topicObj.partition, min);
-            });
+            console.error(`offsetOutOfRange error!`)
         });
 
         const q = queue(function(payload: T, cb: any) {

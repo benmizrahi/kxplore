@@ -11,7 +11,7 @@ declare var moment:Function;
             <div class="col-lg-4">
             <div class="row"> 
                 <div class="col-lg-6 header-text">
-                <span>Envierment: </span>
+                    <span>Envierment: </span>
                 </div>
                 <div class="col-lg-6">
                 <select class="form-control"  [(ngModel)]="selectedEnv" >
@@ -20,32 +20,40 @@ declare var moment:Function;
                 </div>
             </div>
             </div>
-            <div class="col-lg-4">
+            <div class="col-lg-2">
                 <div class="row"  *ngIf="selectedEnv"> 
-                    <div class="col-lg-6 header-text">
+                    <div class="col-lg-4 header-text">
                         <span>Topic: </span>
                     </div>
-                    <div class="col-lg-4">
+                    <div class="col-lg-6">
                     <select class="form-control"  [(ngModel)]="selectedTopic">
                         <option *ngFor="let topic of getTopicsInEnv(selectedEnv)">{{topic}}</option>
                     </select>
                     </div>
                 </div>
             </div>
-            <div class="col-lg-2" *ngIf="selectedTopic && selectedEnv">
-                <input class="form-control" [(ngModel)]="selectedTimestamp" placeholder="Timestamp" type="number">
+            <div class="col-lg-1" *ngIf="selectedTopic && selectedEnv">
+                <select class="form-control"  [(ngModel)]="from">
+                    <option value="1">Newest</option>
+                    <option value="2">Oldest</option>
+                    <option value="3">DateTime</option>
+                </select>
             </div>
-            <div class="col-lg-2" style="text-align: right;">
-            <button *ngIf="selectedTopic && selectedEnv" class="btn btn-hero-warning" (click)="startStream()">Pull</button>
+            <div class="col-lg-2" *ngIf="selectedTopic && selectedEnv && from == 3">
+                <input class="form-control" [(ngModel)]="selectedDateTime"  [owlDateTime]="dt1"  [owlDateTimeTrigger]="dt1" >
+                <owl-date-time #dt1 [showSecondsTimer]=true></owl-date-time>
+            </div>
+            <div class="col-lg-2" style="text-align: left;">
+                <button *ngIf="selectedTopic && selectedEnv" style="background: #afe0af;" class="btn btn-hero-warning" (click)="startStream()">Pull</button>
             </div>
         </div>
     `,
     styles:[
         `
         .header-text {
-          text-align: center;
-          padding-top: 13px;
-          font-size: 18px;
+            text-align: center;
+            padding-top: 8px;
+            font-size: 18px;
         }`
     ]
 })
@@ -54,19 +62,25 @@ export class StreamSelector{
     selectedFilter:any = null;
     selectedTopic:string =  null ;
     selectedEnv:string = null;
-    selectedTimestamp:number = null
+    selectedDateTime: Date;
+    from = 1;
+
     executers:number = 1;
     constructor(private readonly streamConsumerService:StreamConsumerService,
         private readonly userProfileService:UserProfileService){
-            this.selectedDate = moment().format('DD/MM/YYYY'); 
+           
     }
     startStream = () =>{
 
         if(this.streamConsumerService.isStreamExsits(this.selectedTopic,this.selectedEnv)){
             alert('please delete the connection before reconnect!')
+            return;
         }
+        
     
-        this.streamConsumerService.startConnection(this.selectedTopic,this.selectedEnv,this.selectedTimestamp,
+        this.streamConsumerService.startConnection(this.selectedTopic,this.selectedEnv,
+            this.from  == 3 && this.selectedDateTime  ? moment(this.selectedDateTime).format('x') : null,
+            (this.from == 2 ? true : false),
           (res,object:ConsumerObject)=>{
             if(res.topic != object.topic || res.env != object.env) return ;
             object.data = res.messages

@@ -14,7 +14,11 @@ export class ConsumerObject{
   public selectedJSON = null;
 
   constructor(private socketKafkaService:SocketKafkaService,
-              public topic: string,public env:string,private callback:any,private timestamp?:number){
+              public topic: string,
+              public env:string,
+              private callback:any,
+              private timestamp?:number,
+              private isOldest?:boolean){
                 this.viewSource = []
               }
 
@@ -23,7 +27,7 @@ export class ConsumerObject{
   }
 
   start(){
-    this.socketKafkaService.emit("start-consumer", {topic:this.topic,env: this.env,timestamp:this.timestamp,filter:this.filterObject.value});
+    this.socketKafkaService.emit("start-consumer", {topic:this.topic,env: this.env,isOldest:this.isOldest,timestamp:this.timestamp,filter:this.filterObject.value});
     this.socketKafkaService.fromEvent(`consumer-id-${this.topic}-${this.env}-error`).subscribe((res:any)=>{
       alert(JSON.stringify(res))
       this.streamAlive = false;
