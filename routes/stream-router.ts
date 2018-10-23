@@ -37,26 +37,23 @@ export class StreamRouter {
     private socketIntHanlder = (config,io) => {
         io.on('connection', (client) => {   
 
-           const connections = new Map();
-           client.on('start-consumer', async (data) => {
+           let connections = {}
+           client.on('consumer-connect', async (data) => {
                 try {
                     let handler:IHandlerResults<KafkaAction> = await this.kafkaHandler.handle({action:KafkaAction.connect,payload:{
                         env:data.env,   
                         topic:data.topic,
                         timestamp:data.timestamp,
+                        isOldest:data.isOldest,
                         userId:client.decoded,
                         dataCallback:this.publishdata(client,data,io)
                     }})
                     let current = data;
                     current['id'] = handler.results
-                    var clientValues = connections.get(client);
-                    if(clientValues){
-                        clientValues.push(current)
-                    }else{
-                        clientValues = []
-                        clientValues.push(current)
+                    if(!connections[client.id]){
+                        connections[client.id] = []
                     }
-                    connections.set(client,clientValues);
+                    connections[client.id].push({env:data.env,topic:data.topic})
                     console.log(`created client id = ${handler.results}`)
                     client.emit(`akk-consumer-id-${data.topic}-${data.env}`, {id:handler.results});
                 }
@@ -65,30 +62,54 @@ export class StreamRouter {
                 }
             });
 
-           client.on('stop-consumer', async (data) => {
-               let res = await this.kafkaHandler.handle({action:KafkaAction.disconnect,payload:{
+           client.on('pause', async (data) => {
+               let res = await this.kafkaHandler.handle({action:KafkaAction.pause,payload:{
                     env:data.env,
                     topic:data.topic,
+                    userId:client.decoded,
                     id:data.id
                 }})
-                let clientValues = connections.get(client);
-                connections.set(client,clientValues.filter(x =>{
-                    return x.id != data.id 
-                }));
+                connections[client.id] = connections[client.id].filter(keys =>{
+                    return keys.topic == data.topic && keys.env == data.env
+                });
+           });
+           
+           client.on('resume',async (data) =>{
+                let res = await this.kafkaHandler.handle({action:KafkaAction.resume,payload:{
+                    env:data.env,
+                    topic:data.topic,
+                    userId:client.decoded,
+                    id:data.id
+                }})      
+                if(!connections[client.id]){
+                    connections[client.id] = []
+                }
+                connections[client.id].push({env:data.env,topic:data.topic})
+           });
+
+           client.on('delete',async (data) =>{
+            connections[client.id] = connections[client.id].filter(keys =>{
+                return keys.topic == data.topic && keys.env == data.env
+            });
+            let res = await this.kafkaHandler.handle({action:KafkaAction.clear,payload:{
+                env:data.env,
+                topic:data.topic,
+                userId:client.decoded,
+                id:data.id
+            }})  
            });
 
            client.on('disconnect',async () => {
-                let clientValues = connections.get(client);
-                if(!clientValues) return;
-                clientValues.forEach(async (clientConnections) => {
-                    let res = await this.kafkaHandler.handle({action:KafkaAction.disconnect,payload:{
+                if(!connections[client.id] || connections[client.id].length == 0) return;
+                connections[client.id].forEach(async (clientConnections) => {
+                    let res = await this.kafkaHandler.handle({action:KafkaAction.clear,payload:{
                         env:clientConnections.env,
                         topic:clientConnections.topic,
-                        id:clientConnections.id
+                        userId:client.decoded
                     }}) 
                     console.log(`deconnected from" ${clientConnections.topic}-${clientConnections.env}`)
                 });
-               connections.delete(client); //delete the client
+                connections[client.id] = [] //delete the client
            });
 
            client.on('discribe-env',async (data)=>{
@@ -96,14 +117,6 @@ export class StreamRouter {
                 env:data.env
             }})
             client.emit(`discribe-env-results`, res);
-           })
-
-           client.on('start-consumer-by-timestamp',async (data)=>{
-            let res = await this.kafkaHandler.handle({action:KafkaAction.fatchFromTimestamp,payload:{
-                env:data.env,
-                topic:data.topic
-            }})
-            client.emit(`start-consumer-by-timestamp-results`, res);
            })
       });
     };

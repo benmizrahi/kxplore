@@ -2,6 +2,7 @@ import { queue } from 'async';
 import { Client, Consumer, Offset } from 'kafka-node';
 import { isArray } from 'util';
 import { Func } from 'mocha';
+import { Environment } from '../../../dataModels/envierment';
 
 export class ConsumerWapper {
     client: Client;
@@ -12,10 +13,10 @@ export class ConsumerWapper {
 
     isActive = false;
 
-    private connect (topic: string,connectionString:string,clientId:string,envOptions,offsets) {
+    private connect (topic:string,userId:string,environment:Environment,offsets:Array<any>) {
         let self = this;
 
-        self.client = new Client(connectionString, clientId);
+        self.client = new Client(environment.zookeeperUrl, environment.groupId + '___' + userId);
         let offset_values = Object.keys(offsets[topic]).map(x=>{
             return {
                 topic:topic,
@@ -23,16 +24,16 @@ export class ConsumerWapper {
                 offset:offsets[topic][x]
             }
         })
-        self.consumer = new Consumer(this.client,[offset_values[0]] , envOptions);
+        self.consumer = new Consumer(this.client,offset_values , environment.properties);
         self.offset = new Offset(self.client);
         
         console.info(`Listening for the ${topic} messages...`);
     }
 
 
-    public consume<T>(topic: string,env:string,connectionString:string,groupId:string, threads: number,envOptions:any,offsets:Array<any>, callback: (msg: T,topic:string,env:string, done: Function,context:any) => void,context:any): void {  
+    public consume<T>(topic:string,userId:string,environment:Environment,offsets:Array<any>, callback: (msg: T,topic:string,userId:string, done: Function,context:any) => void,context:any): void {  
         let self = this;
-        self.connect(topic,connectionString,groupId,envOptions,offsets);
+        self.connect(topic,userId,environment,offsets);
 
         process.on('SIGINT', () => self.consumer.close(true, () => process.exit()));
 
@@ -41,7 +42,7 @@ export class ConsumerWapper {
             || err.stack.includes('FailedToRebalanceConsumerError');
             const leaderNotAvailable = err.message && err.message.includes('LeaderNotAvailable');
             if (failedToRebalanceConsumerError || leaderNotAvailable) {
-                return setImmediate(() => self.consumer.close(true, () => self.connect(topic,connectionString,groupId,envOptions,offsets)));
+                return setImmediate(() => self.consumer.close(true, () => self.connect(topic,userId,environment,offsets)));
             }
             console.error(`Kafka error happened: ${JSON.stringify(err)}`);
         });
@@ -51,8 +52,8 @@ export class ConsumerWapper {
         });
 
         const q = queue(function(payload: T, cb: any) {
-            setImmediate(() => callback(payload,topic,env, cb,context));
-        }, threads);
+            setImmediate(() => callback(payload,topic,userId, cb,context));
+        }, environment.threadCount);
 
         q.drain = function() {
             self.consumer.resume();
@@ -62,19 +63,6 @@ export class ConsumerWapper {
 
         self.isActive = true;
     }
-
-
-    // private resetConsumerOffsets = (topic,offsets) => {
-    //     return new Promise<boolean>((resolve,reject)=>{
-    //         let offsets =  Object.keys(offsets[topic]).map(x=>{
-    //             return {
-    //                 topic:topic,
-    //                 partition:x,
-    //                 offset:offsets[topic][x][0]
-    //             }
-    //         })
-    //     })
-    // }
 
     private messageListener (q: any) {
         return (messageWrapper: any)  => {

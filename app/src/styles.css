@@ -583,3 +583,6 @@ envierments-edit > * > * > * > .ngx-lighttable > * .ngx-lighttable__header-cell:
 .widget-placeholder {
   position: absolute;
 }
+.nb-theme-default nb-menu .menu-item>.menu-items>.menu-item a.active{
+  border-color: transparent !important;
+}

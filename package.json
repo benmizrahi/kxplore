@@ -61,6 +61,7 @@
     "node-mysql": "^0.4.2",
     "nodemon": "^1.11.0",
     "open-iconic": "^1.1.1",
+    "papaparse": "^4.6.1",
     "passport": "^0.4.0",
     "passport-google-oauth2": "^0.1.6",
     "passport-local": "^1.0.0",

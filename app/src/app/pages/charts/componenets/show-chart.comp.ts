@@ -6,7 +6,7 @@ import { StreamConsumerService } from '../../../services/stream-consumer.service
     selector: 'show-chart',
     template: `
             <div class="chart-header">{{chart.chartTitle}}</div>
-            <div *ngIf="isStreamsExists()" style="height: 100%" echarts [autoResize]="true" [options]="options"  [merge]="updateOptions" class="demo-chart"></div>
+            <div *ngIf="isStreamsExists()" style="height: 80%" echarts [autoResize]="true" [options]="options"  [merge]="updateOptions" class="demo-chart"></div>
     `,
     styles: [`
         .chart-header{

@@ -28,14 +28,14 @@ export class StreamConsumerService {
     else{
       this.connections[topic + "|" + env] = new ConsumerObject(this.socketKafkaService,topic,env,callback,timestamp,isOldest);
     }
-    this.connections[topic + "|" + env].start();
+    this.connections[topic + "|" + env].connect();
     return this.connections[topic + "|" + env];
   }
 
-  stopConnection = (topic: string,env:string) => {
-    if(this.connections[topic + "|" + env])
-      this.connections[topic + "|" + env].stop();
-  };
+  // stopConnection = (topic: string,env:string) => {
+  //   if(this.connections[topic + "|" + env])
+  //     this.connections[topic + "|" + env].connect();
+  // };
 
   isStreamExsits = (topic: string,env:string)=>{
     if(this.connections[topic + "|" + env])

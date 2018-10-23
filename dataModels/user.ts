@@ -24,9 +24,10 @@ export class User {
         if (profile.photos && profile.photos.length) {
         imageUrl = profile.photos[0].value;
         }
-        let update_profile =  await dbHanlder.handle({action:DBAction.executeSQL,payload:`INSERT INTO users_profile (authId,displayName,image,userId)
+        let update_profile =  await dbHanlder.handle({action:DBAction.executeSQL,payload:`
+            INSERT INTO users_profile (authId,displayName,image,userId)
             VALUES("${profile.id}", "${profile.displayName}", "${imageUrl}",${id}) ON DUPLICATE KEY UPDATE    
-                    authId="${profile.id}", displayName="${profile.displayName}",image = "${imageUrl}"`});
+                    authId="${profile.id}", displayName="${profile.displayName}",image = "${imageUrl}",userId=${id}`});
         
         console.log(`profile update status: ${update_profile.status}`)
       }

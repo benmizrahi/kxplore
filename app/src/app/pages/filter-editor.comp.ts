@@ -5,7 +5,9 @@ import 'brace/mode/sql';
   selector: 'filter-editor',
   template: `
         <ace-editor
-            [(text)]="filter.value" mode="sql" [text]="content" [theme]="'eclipse'" [options]="{maxLines: '3',minLines:'3'}"
+             mode="sql" [text]="content" [theme]="'eclipse'"
+             [options]="{maxLines: '3',minLines:'3'}"
+             (textChanged)="onChange($event)"
             #editor style="height:200px;"></ace-editor>
   `,
   styles:[`
@@ -24,8 +26,6 @@ export class FilterEditor implements AfterViewInit {
 
     @ViewChild('editor') editor;
 
-    @Input('filter') filter;
-
     ngAfterViewInit() {
  
         this.editor.getEditor().setOptions({
@@ -39,6 +39,10 @@ export class FilterEditor implements AfterViewInit {
  
             }
         })
+    }
+
+    onChange(code) {
+       this.filterChanged.emit(code)
     }
 
 }

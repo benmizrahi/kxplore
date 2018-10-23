@@ -56,6 +56,7 @@
     "ngx-moment": "^2.0.0",
     "ngx-popover": "0.0.16",
     "ngx-socket-io": "^1.0.8",
+    "papaparse": "^4.6.1",
     "rxjs": "^6.1.0",
     "rxjs-compat": "^6.1.0",
     "zone.js": "^0.8.19"

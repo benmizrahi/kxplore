@@ -11,7 +11,7 @@ declare var moment:Function;
             <div class="col-lg-4">
             <div class="row"> 
                 <div class="col-lg-6 header-text">
-                    <span>Envierment: </span>
+                    <span>Environment: </span>
                 </div>
                 <div class="col-lg-6">
                 <select class="form-control"  [(ngModel)]="selectedEnv" >
@@ -63,7 +63,7 @@ export class StreamSelector{
     selectedTopic:string =  null ;
     selectedEnv:string = null;
     selectedDateTime: Date;
-    from = 1;
+    from = "1";
 
     executers:number = 1;
     constructor(private readonly streamConsumerService:StreamConsumerService,
@@ -79,8 +79,8 @@ export class StreamSelector{
         
     
         this.streamConsumerService.startConnection(this.selectedTopic,this.selectedEnv,
-            this.from  == 3 && this.selectedDateTime  ? moment(this.selectedDateTime).format('x') : null,
-            (this.from == 2 ? true : false),
+            this.from  == "3" && this.selectedDateTime  ? moment(this.selectedDateTime).format('x') : null,
+            (this.from == "2" ? true : false),
           (res,object:ConsumerObject)=>{
             if(res.topic != object.topic || res.env != object.env) return ;
             object.data = res.messages

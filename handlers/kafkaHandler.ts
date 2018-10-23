@@ -6,6 +6,7 @@ import { ILoggerHandler } from "./loggerHandler";
 import { clearInterval } from "timers";
 import { IDbHandler } from "./dbHandler";
 import { ConsumerWapper } from "../services/utilities/kafka/consumerWapper";
+import { Environment } from "../dataModels/envierment";
 const kafkaLogging = require('kafka-node/logging');
 kafkaLogging.setLoggerProvider(consoleLoggerProvider);
 function consoleLoggerProvider (name) {
@@ -22,9 +23,9 @@ function consoleLoggerProvider (name) {
 @Injectable()
 export class KafkaHandler implements IHandler<KafkaAction>{
     
-    private connections:{ [env: string]: {topics: { [topic:string]:{instance:ConsumerWapper, pool:Array<any>,interval:any,reconnect:boolean,filter:string,callbacks:{[id:string]: Function }}  } } } = { };
+    private connections:{ [userId: string]: {env:Environment, topics: { [topic:string]:{instance:ConsumerWapper, pool:Array<any>,interval:any,reconnect:boolean,filter:string,callback:Function}  } } } = { };
 
-    private envierments:{[env:string]:any} = null
+    private envierments:{[env:string]:Environment} = null
 
 
     constructor(@Inject('global-config') private readonly config:{kafkaConfig:{messagePool:number,minMessage:number,intervalMs:number,poolCount:number}},
@@ -47,7 +48,7 @@ export class KafkaHandler implements IHandler<KafkaAction>{
                             const topicDescription =  await this.handle({action:KafkaAction.describe,payload:handleParams.payload})
                             from_offset = await this.getOffsetByTimestamp(handleParams.payload.env,
                                 handleParams.payload.topic,handleParams.payload.userId,Object.keys(topicDescription.results[1].metadata[handleParams.payload.topic]),handleParams.payload.timestamp)
-                        }else if(handleParams.payload.oldest){
+                        }else if(handleParams.payload.isOldest){
                             from_offset = await this.getOldestOffsets(handleParams.payload.env,
                                 handleParams.payload.topic,handleParams.payload.userId) //fatch the latest 
                         }else{
@@ -61,9 +62,22 @@ export class KafkaHandler implements IHandler<KafkaAction>{
                     }
                     catch(e) {reject(e) };
                     break;
-                case KafkaAction.disconnect:
+                case KafkaAction.resume:
+                    this.connections[handleParams.payload.userId].topics[handleParams.payload.topic].instance.resume();
+                    console.info(`connection pause ! payload ${JSON.stringify(handleParams.payload)}`);
+                    break;
+                case KafkaAction.pause:
+                    clearInterval(this.connections[handleParams.payload.userId].topics[handleParams.payload.topic].interval)
+                    delete this.connections[handleParams.payload.userId].topics[handleParams.payload.topic].interval
+                    this.connections[handleParams.payload.userId].topics[handleParams.payload.topic].instance.pause();
+                    console.info(`connection pause ! payload ${JSON.stringify(handleParams.payload)}`);
+                    break;
+                case KafkaAction.clear:
                     try {
-                            delete this.connections[handleParams.payload.env].topics[handleParams.payload.topic].callbacks[handleParams.payload.id]
+                            clearInterval(this.connections[handleParams.payload.userId].topics[handleParams.payload.topic].interval)
+                            delete this.connections[handleParams.payload.userId].topics[handleParams.payload.topic].interval
+                            this.connections[handleParams.payload.userId].topics[handleParams.payload.topic].instance.pause();
+                            delete this.connections[handleParams.payload.userId].topics[handleParams.payload.topic]
                             console.info(`connection stop ! payload ${JSON.stringify(handleParams.payload)}`);
                             console.log(`deel client id = ${handleParams.payload.id}`)
                             resolve({status:true,action:handleParams.action});
@@ -107,68 +121,56 @@ export class KafkaHandler implements IHandler<KafkaAction>{
 
     private initKafka = ({env,topic,userId,dataCallback},offsets?) =>{
         return  new Promise<string>((resolve,reject)=>{
+            try {
             const id = this.guid()
-            if(this.connections[env] && this.connections[env].topics[topic] &&  this.connections[env].topics[topic].instance) {
-                this.connections[env].topics[topic].callbacks[id] = dataCallback
-                this.handlePoolMessages([],this.connections[env].topics[topic].instance,{env:env,topic:topic})
-                if(!this.connections[env].topics[topic].instance.isActive 
-                 && this.connections[env].topics[topic].pool.length == 0 ){
-                    this.connections[env].topics[topic].instance.resume();
-                }
-                resolve(id)
-                return;
-            }
-            let kafkaConfig =  this.envierments[env];
+            let envierment =  this.envierments[env];
             const consumer = new ConsumerWapper();
-            consumer.consume<any>(topic,env,kafkaConfig['zookeeperUrl'],kafkaConfig['groupId'] + '___' + userId,
-             4,this.envierments[env].properties,offsets,this.topicMessageHandler,this);
+            consumer.consume<any>(topic,userId,envierment,offsets,this.topicMessageHandler,this);
+            this.connections[userId] = { topics:{},env:envierment }
 
-                if(!this.connections[env])
-                    this.connections[env] = { topics:{} }
-    
-                if(!this.connections[env].topics[topic])
-                    this.connections[env].topics[topic] = {instance:consumer, pool:[],interval:null,reconnect:false,filter:null,callbacks: {}};
-            
-                this.connections[env].topics[topic].callbacks[id] = dataCallback
-                console.log("Started consumer successfully");
-                resolve(id)
-            //})
+            if(!this.connections[userId].topics[topic])
+                this.connections[userId].topics[topic] = {instance:consumer, pool:[],interval:null,reconnect:false,filter:null,callback:null};
+        
+            this.connections[userId].topics[topic].callback = dataCallback
+            console.log(`Started consumer successfully: ${userId}-${topic}-${env}`);
+            resolve(id)
+            }
+            catch(ex){
+                console.log(`init consumer faild: ${userId}-${topic}-${env} - error: ${JSON.stringify(ex)}`);
+                reject(ex)
+            }
        });
     }
 
-    async topicMessageHandler (message: any,topic:string,env:string, done: Function,context:any): Promise<void> {
+    async topicMessageHandler (message: any,topic:string,userId:string, done: Function,context:any): Promise<void> {
         //console.info(`Got message ` + JSON.stringify(message));
-        context.handlePoolMessages([message],context.connections[env].topics[topic].instance,{topic,env})
+        context.handlePoolMessages([message],context.connections[userId].topics[topic].instance,{topic,userId})
        // handler code here
        return done();
     }
 
-    private handlePoolMessages = (msgs:Object[],instance:ConsumerWapper, {env,topic}) =>{
-        this.connections[env].topics[topic].pool  = this.connections[env].topics[topic].pool.concat(msgs)
-        if(this.connections[env].topics[topic].pool.length > this.config.kafkaConfig.messagePool
-         && this.connections[env].topics[topic].instance.isActive){
+    private handlePoolMessages = (msgs:Object[],instance:ConsumerWapper, {userId,topic}) =>{
+
+        this.connections[userId].topics[topic].pool  = this.connections[userId].topics[topic].pool.concat(msgs)
+        
+        //maxinum pool data
+        if(this.connections[userId].topics[topic].pool.length > this.config.kafkaConfig.messagePool
+         && this.connections[userId].topics[topic].instance.isActive){
+             this.connections[userId].topics[topic].instance.pause()
              console.log(`pool is full stoping consumer!`)
-             this.connections[env].topics[topic].instance.pause()
         }
-        if(!this.connections[env].topics[topic].interval){
-             console.log(`creating interval...`)
-             this.connections[env].topics[topic].interval = setInterval(()=>{
-             let clients = Object.keys(this.connections[env].topics[topic].callbacks)
-             if(clients.length == 0) {
-                console.log(`no listeners found clearing interval...`)
-                clearInterval(this.connections[env].topics[topic].interval);
-                this.connections[env].topics[topic].interval = null;
-                this.connections[env].topics[topic].instance.pause()
-             } 
-             clients.forEach(x => {
-                 if(this.connections[env].topics[topic].callbacks[x])
-                 this.connections[env].topics[topic].callbacks[x](this.connections[env].topics[topic].pool.splice(0, this.config.kafkaConfig.poolCount))
-             })
-            if(this.connections[env].topics[topic].pool.length < this.config.kafkaConfig.minMessage
-                && !this.connections[env].topics[topic].instance.isActive){
-                console.log(`pool is empty restrating consumer...`)
-                this.connections[env].topics[topic].instance.resume()
-            }},this.config.kafkaConfig.intervalMs)
+        if(!this.connections[userId].topics[topic].interval){
+             this.connections[userId].topics[topic].interval = setInterval(()=>{
+                //client callback
+                this.connections[userId].topics[topic].callback(this.connections[userId].topics[topic].pool.splice(0, this.config.kafkaConfig.poolCount))
+            
+            //need to pool more data
+            if(this.connections[userId].topics[topic].pool.length < this.config.kafkaConfig.minMessage
+                && !this.connections[userId].topics[topic].instance.isActive){
+                console.log(`pulling more data...`)
+                this.connections[userId].topics[topic].instance.resume()
+            }
+            },this.config.kafkaConfig.intervalMs)
         }
     }
 
@@ -202,10 +204,15 @@ export class KafkaHandler implements IHandler<KafkaAction>{
                     reject(`error geting offset by ts ${err}`)
                 }
                 else{
+
+                    data[topic] =  Object.keys(data[topic]).map(x => {
+                        return data[topic][x][0];
+                    });
+
                     let isValid = true;
                     Object.keys(data[topic])
                     .forEach(partition => {
-                       isValid =  data[topic][partitons] != 0
+                       isValid =  data[topic][partition] != 0
                     })
                     if(isValid)
                         resolve(data)

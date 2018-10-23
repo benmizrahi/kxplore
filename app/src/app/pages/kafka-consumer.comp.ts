@@ -3,7 +3,7 @@ import {StreamConsumerService} from "../services/stream-consumer.service";
 import {NgXLightTableSettings} from 'ngx-lighttable/types/ngx-lighttable-settings.type';
 import {NgXLightTableSortableDirectionEnum} from 'ngx-lighttable';
 import { UserProfileService } from '../services/user-profile.service';
-import { ConsumerObject } from '../objects/consumer-object';
+declare var Papa:any
 
 @Component({
   selector: 'kafka-table-obj',
@@ -24,7 +24,7 @@ import { ConsumerObject } from '../objects/consumer-object';
                   <nb-card-header>
                   <div class="row">
                     <div class="col-lg-11">      
-                      <filter-editor [filter]="streamConsumerService.connectionsList[connection].filterObject"></filter-editor>
+                      <filter-editor (filterChanged)="applyFilter(connection,$event)"></filter-editor>
                       <code class="instractions">
                           <p>SQL like syntax over you're stream data :</p>
                           <p> To select all type * - to filter spcific fields write filed names with comma between AKA: fieldA,fieldB </p>
@@ -183,11 +183,11 @@ export class KafkaConsumer {
   }
 
   stopStreaming =(connection:string) => {
-    this.streamConsumerService.connectionsList[connection].stop()
+    this.streamConsumerService.connectionsList[connection].pause()
   }
 
   resumeStreaming =(connection:string) => {
-    this.streamConsumerService.connectionsList[connection].start()
+    this.streamConsumerService.connectionsList[connection].resume()
   }
 
   isStreamAlive = (connection:string) => {
@@ -195,13 +195,13 @@ export class KafkaConsumer {
   }
 
   closeStream = (connection:string) => {
-    this.streamConsumerService.connectionsList[connection].stop()
+    this.streamConsumerService.connectionsList[connection].delete()
     delete this.streamConsumerService.connectionsList[connection];
     this.streamConsumerService.activeTab = Object.keys(this.streamConsumerService.connectionsList)[0]
   }
 
-  applyFilter = (connection) =>{
-    this.streamConsumerService.connectionsList[connection].makeFilter()
+  applyFilter = (connection,filter) =>{
+    this.streamConsumerService.connectionsList[connection].Filter = filter
   }
 
   showJson = (data,connection) => {
@@ -213,7 +213,12 @@ export class KafkaConsumer {
   }
 
   downloadObjectAsJson = (connection) => {
-    var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.streamConsumerService.connectionsList[connection].data));
+    let exportJSONS =this.streamConsumerService.connectionsList[connection].viewSource.map(x=>{
+      return x.message
+    }).join('\n')
+
+    
+    var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(exportJSONS);
     var downloadAnchorNode = document.createElement('a');
     downloadAnchorNode.setAttribute("href",     dataStr);
     downloadAnchorNode.setAttribute("download", `${connection}.json`);
@@ -223,38 +228,15 @@ export class KafkaConsumer {
   }
 
   downloadObjectAsCSV =  (connection) => {
-    this.exportCSVFile(null,this.streamConsumerService.connectionsList[connection].data,connection)
+    let exportJSONS =this.streamConsumerService.connectionsList[connection].viewSource.map(x=>{
+      return JSON.parse(x.message)
+    })
+  
+    this.exportCSVFile(Papa.unparse(exportJSONS),connection)
   }
 
-  private convertToCSV = (objArray) => {
-    var array = typeof objArray != 'object' ? JSON.parse(objArray) : objArray;
-    var str = '';
-
-    for (var i = 0; i < array.length; i++) {
-        var line = '';
-        for (var index in array[i]) {
-            if (line != '') line += ','
-
-            line += array[i][index];
-        }
-
-        str += line + '\r\n';
-    }
-
-    return str;
-  }
-
-  private exportCSVFile = (headers, items, fileTitle) => {
-    if (headers) {
-        items.unshift(headers);
-    }
-
-    // Convert Object to JSON
-    var jsonObject = JSON.stringify(items);
-
-    var csv = this.convertToCSV(jsonObject);
-
-    var exportedFilenmae = fileTitle + '.csv' || 'export.csv';
+  private exportCSVFile = (csv, fileTitle) => {
+    var exportedFilenmae = fileTitle + '.csv';
 
     var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     if (navigator.msSaveBlob) { // IE 10+
@@ -277,7 +259,6 @@ export class KafkaConsumer {
   tabChanged = (event) =>{
    // debugger;
   }
-
 
 
 }

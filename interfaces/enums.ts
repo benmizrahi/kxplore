@@ -16,7 +16,9 @@ export enum LoggerAction {
 }
 export enum KafkaAction {
     connect,
-    disconnect,
+    resume,
+    pause,
+    clear,
     applyFilter,
     describe,
     fatchFromTimestamp,
