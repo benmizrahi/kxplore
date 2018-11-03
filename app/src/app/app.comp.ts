@@ -16,8 +16,7 @@ import { NbSidebarService } from '@nebular/theme';
                         <i class="nb-menu"></i>
                       </a>
                       <div class="logo">
-                        <img class="kafka-icon" src="assets/kafka.png" />
-                        K<span>xplore</span>
+                        <img class="kafka-icon" src="assets/k_logo.png" />
                       </div>
                   </div>
               </div>
@@ -59,7 +58,8 @@ import { NbSidebarService } from '@nebular/theme';
       padding-top: 9px;
      }
      .kafka-icon{
-      width: 20px;
+      width: 10%;
+      margin: -6px 4px 4px 4px;
      }
   `]
 })
@@ -73,7 +73,7 @@ export class AppComponent {
 
   items = [
     {
-      title: 'Kxplore',
+      title: 'Menu',
       expanded: true,
       children: [
         {
@@ -81,19 +81,19 @@ export class AppComponent {
             link: "/",
         },
         {
+          title:'Details',
+          link:"/envd"
+        },
+        {
           title:'Charts',
           link:"/charts"
         },
-        // {
-        //   title:'History',
-        //   link:"/history"
-        // },
         {
           title:'Management',
           children: [
             {
-              title: 'Envierments',
-              link: "/envierments",
+              title: 'Environment',
+              link: "/environments",
             },
             {
               title: 'Topics',

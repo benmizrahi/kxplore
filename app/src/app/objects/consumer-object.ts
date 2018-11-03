@@ -37,11 +37,14 @@ export class ConsumerObject{
     });
     this.socketKafkaService.fromEvent('disconnect').subscribe((res)=>{
       this.streamAlive = false;
+      this.clearListeners()
     })
-    this.socketKafkaService.fromEvent(`discribe-env-results`).subscribe((res)=>{
-      console.log(res)
-    })
-    this.socketKafkaService.emit("discribe-env",{env: this.env});
+  }
+
+  private clearListeners = () => {
+    this.socketKafkaService.removeListener(`akk-consumer-id-${this.topic}-${this.env}`)
+    this.socketKafkaService.removeListener(`consumer-id-${this.topic}-${this.env}-error`)
+    this.socketKafkaService.removeListener(`messages-list-${this.topic}-${this.env}`)
   }
 
   pause(){
@@ -70,6 +73,7 @@ export class ConsumerObject{
   viewSource:any[] = []
 
   set data(objects:any[]){
+    
     this._data.length >= environment.maxMessage ? this.shiftItems(objects.length) : true
     this._data = this._data.concat(objects) //save all data for filtering
     if(this._filter){
@@ -87,6 +91,7 @@ export class ConsumerObject{
         }
       });
     }
+    this.counter = this.viewSource.length
   }
 
 

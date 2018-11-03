@@ -11,12 +11,12 @@ import 'brace/mode/sql';
             #editor style="height:200px;"></ace-editor>
   `,
   styles:[`
-  .aceEditorDirective {
-    margin-top: 50px;
-    min-height: 200px;
-    width: 100%;
-    overflow: auto;
-  }
+    .aceEditorDirective {
+        margin-top: 50px;
+        min-height: 200px;
+        width: 100%;
+        overflow: auto;
+    }
   `]
 })
 

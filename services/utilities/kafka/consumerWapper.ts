@@ -1,5 +1,5 @@
 import { queue } from 'async';
-import { Client, Consumer, Offset } from 'kafka-node';
+import { Client, Consumer, Offset,HighLevelConsumer } from 'kafka-node';
 import { isArray } from 'util';
 import { Func } from 'mocha';
 import { Environment } from '../../../dataModels/envierment';
@@ -17,14 +17,19 @@ export class ConsumerWapper {
         let self = this;
 
         self.client = new Client(environment.zookeeperUrl, environment.groupId + '___' + userId);
-        let offset_values = Object.keys(offsets[topic]).map(x=>{
+        let offset_values = offsets ? Object.keys(offsets[topic]).map(x=>{
             return {
                 topic:topic,
                 partition:parseInt(x),
                 offset:offsets[topic][x]
             }
-        })
-        self.consumer = new Consumer(this.client,offset_values , environment.properties);
+        }) : null
+        if(offset_values){
+            self.consumer = new Consumer(this.client,offset_values , environment.properties);
+        }else{
+            self.consumer = new HighLevelConsumer(this.client,[{topic:topic}] , environment.properties);
+        }
+        
         self.offset = new Offset(self.client);
         
         console.info(`Listening for the ${topic} messages...`);
@@ -38,7 +43,7 @@ export class ConsumerWapper {
         process.on('SIGINT', () => self.consumer.close(true, () => process.exit()));
 
         self.consumer.on('error', (err: any) => {
-            const failedToRebalanceConsumerError = err.message && err.message.includes('FailedToRebalanceConsumerError') 
+            const failedToRebalanceConsumerError = !err.message || err.message && err.message.includes('FailedToRebalanceConsumerError') 
             || err.stack.includes('FailedToRebalanceConsumerError');
             const leaderNotAvailable = err.message && err.message.includes('LeaderNotAvailable');
             if (failedToRebalanceConsumerError || leaderNotAvailable) {

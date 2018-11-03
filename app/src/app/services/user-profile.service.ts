@@ -40,9 +40,10 @@ export class UserProfileService {
       this.http
         .get(environment.endpoint + "profile",{headers: headers})
         .subscribe(response => {
-          this.userProfile = response;
+          this.userProfile = response;  
           resolve(true);
         })
+        
     })
   }
 }

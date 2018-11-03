@@ -21,7 +21,7 @@ import { NgxJsonViewerModule } from "ngx-json-viewer";
 const routes: Routes = [
     { path: 'topics', component: ManageTopics  ,canActivate: [AuthGuard] },
     { path: 'users', component: ManageUsers,canActivate: [AuthGuard] },
-    { path: 'envierments', component: ManageEnvs,canActivate: [AuthGuard] },
+    { path: 'environments', component: ManageEnvs,canActivate: [AuthGuard] },
     { path: 'userPremissions', component: ManagePremission,canActivate: [AuthGuard] }
   ];
 

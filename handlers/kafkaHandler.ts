@@ -42,20 +42,23 @@ export class KafkaHandler implements IHandler<KafkaAction>{
                 case KafkaAction.connect:
                     try {
                         let from_offset = null
-
-                        if(handleParams.payload.timestamp){
-                            //describe to topic number of partitons
-                            const topicDescription =  await this.handle({action:KafkaAction.describe,payload:handleParams.payload})
-                            from_offset = await this.getOffsetByTimestamp(handleParams.payload.env,
-                                handleParams.payload.topic,handleParams.payload.userId,Object.keys(topicDescription.results[1].metadata[handleParams.payload.topic]),handleParams.payload.timestamp)
-                        }else if(handleParams.payload.isOldest){
-                            from_offset = await this.getOldestOffsets(handleParams.payload.env,
-                                handleParams.payload.topic,handleParams.payload.userId) //fatch the latest 
-                        }else{
-                            from_offset = await this.getLatestOffsets(handleParams.payload.env,
-                                handleParams.payload.topic,handleParams.payload.userId) //fatch the latest 
+                        try {
+                            if(handleParams.payload.timestamp){
+                                //describe to topic number of partitons
+                                const topicDescription =  await this.handle({action:KafkaAction.describe,payload:handleParams.payload})
+                                from_offset = await this.getOffsetByTimestamp(handleParams.payload.env,
+                                    handleParams.payload.topic,handleParams.payload.userId,Object.keys(topicDescription.results[1].metadata[handleParams.payload.topic]),handleParams.payload.timestamp)
+                            }else if(handleParams.payload.isOldest){
+                                from_offset = await this.getOldestOffsets(handleParams.payload.env,
+                                    handleParams.payload.topic,handleParams.payload.userId) //fatch the latest 
+                            }else{
+                                from_offset = await this.getLatestOffsets(handleParams.payload.env,
+                                    handleParams.payload.topic,handleParams.payload.userId) //fatch the latest 
+                            }
                         }
-                
+                        catch(e){
+                            console.log("error fatching partitons for topic")
+                        }
                         const id = await this.initKafka(handleParams.payload,from_offset)  //init kafka consumet
                         console.info(`instnace of ${JSON.stringify(handleParams.payload)} created sucssesfully!`) 
                         resolve({status:true,action:handleParams.action,results:id})
@@ -63,17 +66,36 @@ export class KafkaHandler implements IHandler<KafkaAction>{
                     catch(e) {reject(e) };
                     break;
                 case KafkaAction.resume:
-                    this.connections[handleParams.payload.userId].topics[handleParams.payload.topic].instance.resume();
-                    console.info(`connection pause ! payload ${JSON.stringify(handleParams.payload)}`);
+                try {
+                        if(!this.connections[handleParams.payload.userId] ||
+                        !this.connections[handleParams.payload.userId].topics[handleParams.payload.topic]){
+                            return this.handle({action:KafkaAction.connect,payload:handleParams.payload})
+                        }
+                        this.connections[handleParams.payload.userId].topics[handleParams.payload.topic].instance.resume();
+                        console.info(`connection pause ! payload ${JSON.stringify(handleParams.payload)}`);
+                    }
+                    catch(e) {reject(e) };
                     break;
                 case KafkaAction.pause:
-                    clearInterval(this.connections[handleParams.payload.userId].topics[handleParams.payload.topic].interval)
-                    delete this.connections[handleParams.payload.userId].topics[handleParams.payload.topic].interval
-                    this.connections[handleParams.payload.userId].topics[handleParams.payload.topic].instance.pause();
-                    console.info(`connection pause ! payload ${JSON.stringify(handleParams.payload)}`);
+                    try {
+                        if(!this.connections[handleParams.payload.userId] ||
+                        !this.connections[handleParams.payload.userId].topics[handleParams.payload.topic]){
+                            resolve({status:true,action:handleParams.action});
+                        }
+                        clearInterval(this.connections[handleParams.payload.userId].topics[handleParams.payload.topic].interval)
+                        delete this.connections[handleParams.payload.userId].topics[handleParams.payload.topic].interval
+                        this.connections[handleParams.payload.userId].topics[handleParams.payload.topic].instance.pause();
+                        console.info(`connection pause ! payload ${JSON.stringify(handleParams.payload)}`);
+                        resolve({status:true,action:handleParams.action});
+                    }
+                    catch(e) {reject(e) };
                     break;
                 case KafkaAction.clear:
                     try {
+                            if(!this.connections[handleParams.payload.userId] ||
+                            !this.connections[handleParams.payload.userId].topics[handleParams.payload.topic]){
+                                resolve({status:true,action:handleParams.action});
+                            }
                             clearInterval(this.connections[handleParams.payload.userId].topics[handleParams.payload.topic].interval)
                             delete this.connections[handleParams.payload.userId].topics[handleParams.payload.topic].interval
                             this.connections[handleParams.payload.userId].topics[handleParams.payload.topic].instance.pause();
@@ -204,11 +226,9 @@ export class KafkaHandler implements IHandler<KafkaAction>{
                     reject(`error geting offset by ts ${err}`)
                 }
                 else{
-
                     data[topic] =  Object.keys(data[topic]).map(x => {
                         return data[topic][x][0];
                     });
-
                     let isValid = true;
                     Object.keys(data[topic])
                     .forEach(partition => {
