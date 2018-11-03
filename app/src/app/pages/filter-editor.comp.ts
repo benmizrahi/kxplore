@@ -5,16 +5,18 @@ import 'brace/mode/sql';
   selector: 'filter-editor',
   template: `
         <ace-editor
-            [(text)]="filter.value" mode="sql" [text]="content" [theme]="'eclipse'" [options]="{maxLines: '3',minLines:'3'}"
+             mode="sql" [text]="content" [theme]="'eclipse'"
+             [options]="{maxLines: '3',minLines:'3'}"
+             (textChanged)="onChange($event)"
             #editor style="height:200px;"></ace-editor>
   `,
   styles:[`
-  .aceEditorDirective {
-    margin-top: 50px;
-    min-height: 200px;
-    width: 100%;
-    overflow: auto;
-  }
+    .aceEditorDirective {
+        margin-top: 50px;
+        min-height: 200px;
+        width: 100%;
+        overflow: auto;
+    }
   `]
 })
 
@@ -23,8 +25,6 @@ export class FilterEditor implements AfterViewInit {
     @Output() filterChanged:EventEmitter<string> = new EventEmitter();
 
     @ViewChild('editor') editor;
-
-    @Input('filter') filter;
 
     ngAfterViewInit() {
  
@@ -39,6 +39,10 @@ export class FilterEditor implements AfterViewInit {
  
             }
         })
+    }
+
+    onChange(code) {
+       this.filterChanged.emit(code)
     }
 
 }

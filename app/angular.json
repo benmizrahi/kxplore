@@ -23,6 +23,7 @@
             "styles": [
               "src/styles.css",
               "node_modules/bootstrap/dist/css/bootstrap.css",
+              "node_modules/ng-pick-datetime/assets/style/picker.min.css",
               "node_modules/@nebular/theme/styles/prebuilt/default.css",
               "node_modules/@swimlane/ngx-datatable/release/index.css",
               "node_modules/@swimlane/ngx-datatable/release/themes/material.css",
@@ -42,7 +43,8 @@
               "node_modules/ace-builds/src-min/worker-json.js",
               "node_modules/ace-builds/src-min/mode-json.js",
               "node_modules/ace-builds/src-min/mode-javascript.js",
-              "node_modules/ace-builds/src-min/worker-javascript.js"  
+              "node_modules/ace-builds/src-min/worker-javascript.js",
+              "node_modules/papaparse/papaparse.min.js"    
             ]
           },
           "configurations": {

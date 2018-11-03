@@ -10,6 +10,8 @@ import { NgXLightTableModule } from "ngx-lighttable";
 import { NgxJsonViewerModule } from "ngx-json-viewer";
 import { StreamSelector } from "./componenets/stream-selector.comp";
 
+import { OwlDateTimeModule,OwlNativeDateTimeModule } from 'ng-pick-datetime';
+
 @NgModule({
     declarations: [
         WatingForConsumerComp,
@@ -23,12 +25,13 @@ import { StreamSelector } from "./componenets/stream-selector.comp";
         AceEditorModule,
         NbCardModule,
         NgXLightTableModule,
+        OwlNativeDateTimeModule,
+        OwlDateTimeModule,
         NgxJsonViewerModule,],
     exports:[  
         StreamSelector,
         EditObject,
         WatingForConsumerComp]
-   
 })
 
 export class AppCommonModule{

@@ -40,8 +40,8 @@ export class AuthenticationRouter{
           done(null,`UnAuthoraized`)
           return;
         }
-        const token = jwt.sign(userId, this.config.authConfig.SECRET_KEY);
-        let user = await User.buildUserObjectById(userId,this.dbHandler,profile);
+        const token = jwt.sign(userId.id, this.config.authConfig.SECRET_KEY);
+        let user = await User.buildUserObjectById(userId.id,this.dbHandler,profile);
         user.sessionToken = token;
         done(null, user);
       }

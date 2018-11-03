@@ -24,9 +24,10 @@ export class User {
         if (profile.photos && profile.photos.length) {
         imageUrl = profile.photos[0].value;
         }
-        let update_profile =  await dbHanlder.handle({action:DBAction.executeSQL,payload:`INSERT INTO users_profile (authId,displayName,image,userId)
+        let update_profile =  await dbHanlder.handle({action:DBAction.executeSQL,payload:`
+            INSERT INTO users_profile (authId,displayName,image,userId)
             VALUES("${profile.id}", "${profile.displayName}", "${imageUrl}",${id}) ON DUPLICATE KEY UPDATE    
-                    authId="${profile.id}", displayName="${profile.displayName}",image = "${imageUrl}"`});
+                    authId="${profile.id}", displayName="${profile.displayName}",image = "${imageUrl}",userId=${id}`});
         
         console.log(`profile update status: ${update_profile.status}`)
       }
@@ -35,7 +36,7 @@ export class User {
                 `SELECT u.id,u.isAdmin,u.email,up.displayName,up.image,e.envName,t.topicName
                 from users u
                 LEFT JOIN users_profile up on u.id = up.userId
-                LEFT JOIN map_topics mt on mt.userId = up.userId
+                LEFT JOIN map_topics mt on mt.userId = u.id
                 LEFT JOIN dim_topics t on t.id = mt.topicId
                 LEFT JOIN dim_envierments e on e.id = t.envId
                 where u.id = ${id}`})
