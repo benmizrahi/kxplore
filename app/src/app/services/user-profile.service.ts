@@ -25,6 +25,10 @@ export class UserProfileService {
     }
   };
 
+  reloadUserProfile = async () =>{
+    let results =  await  this.loadUser()
+  }
+
   isAdmin = () => {
     if(this.userProfile && this.userProfile.admin == "1") return true
     return false
@@ -36,9 +40,10 @@ export class UserProfileService {
       this.http
         .get(environment.endpoint + "profile",{headers: headers})
         .subscribe(response => {
-          this.userProfile = response;
+          this.userProfile = response;  
           resolve(true);
         })
+        
     })
   }
 }

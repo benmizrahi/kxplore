@@ -1,18 +1,20 @@
 import { Injectable, Inject } from "@decorators/di";
 import { IDbHandler } from "../handlers/dbHandler";
 import { IHandler } from "../interfaces/IHandler";
-import { DBAction, LoggerAction } from "../interfaces/enums";
+import { DBAction, LoggerAction, KafkaAction } from "../interfaces/enums";
 import { ILoggerHandler } from "../handlers/loggerHandler";
 import { JWTAuthMiddleware } from "../middlewares/jwt-auth-middleware";
+import { User } from "../dataModels/user";
+import { KafkaHandler } from "../handlers/kafkaHandler";
 
 @Injectable()
 export class ManagmentRouter{
 
     constructor(
         @Inject(IDbHandler) private readonly dbHandler:IHandler<DBAction>,
-        @Inject(ILoggerHandler) private readonly logger:IHandler<LoggerAction>,
+        @Inject(KafkaHandler) private readonly kafkaHandler:KafkaHandler,
         @Inject(JWTAuthMiddleware) private readonly jwtMiddleware: JWTAuthMiddleware,
-        @Inject('global-config') private readonly authConfig:{googleConfig:any,SECRET_KEY:string}){
+        @Inject('global-config') private readonly authConfig:{googleConfig:any,SECRET_KEY:string,superuser:any}){
       }
 
 
@@ -40,10 +42,11 @@ export class ManagmentRouter{
                     `})
                 }else{
                     await this.dbHandler.handle({action:DBAction.executeSQL,payload:`
-                        insert into .dim_envierments (envName,props)
+                        insert into dim_envierments (envName,props)
                         values('${req.body.envName}','${JSON.stringify(req.body.props)}');
                 `})
                 }
+                await this.kafkaHandler.handle({action:KafkaAction.reloadEnvierment,payload:{}})
                 res.json(await this.getEnvierments())
             }
             catch(e) {
@@ -55,9 +58,10 @@ export class ManagmentRouter{
         app.post('/api/envierments/delete', [this.jwtMiddleware.authCall], async (req, res, next) => {
             try{
                 let resutls = await this.dbHandler.handle({action:DBAction.executeSQL,payload:`
-                    DELETE FROM  .dim_envierments
+                    DELETE FROM  dim_envierments
                     WHERE id = ${req.body.id}
                 `})
+                await this.kafkaHandler.handle({action:KafkaAction.reloadEnvierment,payload:{}})
                 res.json(await this.getEnvierments())
             }
             catch(e) {

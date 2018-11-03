@@ -14,16 +14,20 @@ export class ConsumerObject{
   public selectedJSON = null;
 
   constructor(private socketKafkaService:SocketKafkaService,
-              public topic: string,public env:string,private callback:any){
+              public topic: string,
+              public env:string,
+              private callback:any,
+              private timestamp?:number,
+              private isOldest?:boolean){
                 this.viewSource = []
               }
 
-  makeFilter = () => {  
-    this.updateSourceStream()
-  }
-
-  start(){
-    this.socketKafkaService.emit("start-consumer", {topic:this.topic,env: this.env,filter:this.filterObject.value});
+  connect(){
+    this.socketKafkaService.emit("consumer-connect", {topic:this.topic,env: this.env,isOldest:this.isOldest,timestamp:this.timestamp,filter:this._filter});
+    this.socketKafkaService.fromEvent(`consumer-id-${this.topic}-${this.env}-error`).subscribe((res:any)=>{
+      alert(JSON.stringify(res))
+      this.streamAlive = false;
+   });
     this.socketKafkaService.fromEvent(`akk-consumer-id-${this.topic}-${this.env}`).subscribe((res:any)=>{
       this.consumerid = res.id
       this.socketKafkaService.fromEvent(`messages-list-${this.topic}-${this.env}`).subscribe((res)=>{
@@ -33,15 +37,27 @@ export class ConsumerObject{
     });
     this.socketKafkaService.fromEvent('disconnect').subscribe((res)=>{
       this.streamAlive = false;
+      this.clearListeners()
     })
-    this.socketKafkaService.fromEvent(`discribe-env-results`).subscribe((res)=>{
-      console.log(res)
-    })
-    this.socketKafkaService.emit("discribe-env",{env: this.env});
   }
 
-  stop(){
-    this.socketKafkaService.emit("stop-consumer", {topic:this.topic,env: this.env,id:this.consumerid});
+  private clearListeners = () => {
+    this.socketKafkaService.removeListener(`akk-consumer-id-${this.topic}-${this.env}`)
+    this.socketKafkaService.removeListener(`consumer-id-${this.topic}-${this.env}-error`)
+    this.socketKafkaService.removeListener(`messages-list-${this.topic}-${this.env}`)
+  }
+
+  pause(){
+    this.socketKafkaService.emit("pause", {topic:this.topic,env: this.env,id:this.consumerid});
+    this.streamAlive = false;
+  }
+  resume(){
+    this.socketKafkaService.emit("resume", {topic:this.topic,env: this.env,id:this.consumerid});
+    this.streamAlive = true;
+  }
+
+  delete(){
+    this.socketKafkaService.emit("delete", {topic:this.topic,env: this.env,id:this.consumerid});
     this.streamAlive = false;
   }
 
@@ -57,18 +73,16 @@ export class ConsumerObject{
   viewSource:any[] = []
 
   set data(objects:any[]){
+    
     this._data.length >= environment.maxMessage ? this.shiftItems(objects.length) : true
-    this._data = this._data.concat(objects) //save all data
-    this.counter = this.counter  + objects.length;
-    if(this.filterObject && this.filterObject.value){
-      this.viewSource = this.applyFilter(this._data,this.filterObject.value).map(x => {
+    this._data = this._data.concat(objects) //save all data for filtering
+    if(this._filter){
+      this.viewSource = this.applyFilter(this._data,this._filter).map(x => {
           return {offset: x.offset,
           partition : x.partition,
           message: JSON.stringify(x.message) 
         }
       });
-      console.log(`this.viewSource: ${this.viewSource.length}`)
-      this.counter =  this.viewSource.length
     }else{
       this.viewSource = this._data.map(x => {
        return {offset: x.offset,
@@ -76,8 +90,8 @@ export class ConsumerObject{
               message: JSON.stringify(x.message) 
         }
       });
-      console.log(`this.viewSource: ${this.viewSource.length}`)
     }
+    this.counter = this.viewSource.length
   }
 
 
@@ -93,20 +107,20 @@ export class ConsumerObject{
   get data() { 
     return this._data;
   }
-  private _filterObject:{value:string} = {value:''}
+  private _filter:string = ''
 
-  get filterObject(){
-    return this._filterObject
+  get Filter(){
+    return this._filter
   }
 
-  set filterObject(obj:{value:string}) {
+  set Filter(value:string) {
+    this._filter = value
     this.updateSourceStream()
-    this._filterObject = obj
   }
 
   updateSourceStream = async () => {
-    if(this.filterObject && this.filterObject.value){
-      this.viewSource = this.applyFilter(this._data,this.filterObject.value).map(x => {
+    if(this._filter){
+      this.viewSource = this.applyFilter(this._data,this._filter).map(x => {
             return {offset: x.offset,
             partition : x.partition,
             message: JSON.stringify(x.message) 

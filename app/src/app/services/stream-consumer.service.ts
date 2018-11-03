@@ -19,24 +19,23 @@ export class StreamConsumerService {
     return this.connections;
   }
 
-  startConnection(topic: string,env:string,executers:number,callback:any){
+  startConnection(topic: string,env:string,timestamp:number,isOldest:boolean,callback:any){
     this.activeTab = topic + "|" + env;
  
     if(this.isStreamExsits(topic,env)){
       return this.connections[topic + "|" + env];
     } 
     else{
-      this.connections[topic + "|" + env] = new ConsumerObject(this.socketKafkaService,topic,env,callback);
+      this.connections[topic + "|" + env] = new ConsumerObject(this.socketKafkaService,topic,env,callback,timestamp,isOldest);
     }
-    this.connections[topic + "|" + env].start();
-    //this.chartOptions.legend.data.push(topic + "|" + env);
+    this.connections[topic + "|" + env].connect();
     return this.connections[topic + "|" + env];
   }
 
-  stopConnection = (topic: string,env:string) => {
-    if(this.connections[topic + "|" + env])
-      this.connections[topic + "|" + env].stop();
-  };
+  // stopConnection = (topic: string,env:string) => {
+  //   if(this.connections[topic + "|" + env])
+  //     this.connections[topic + "|" + env].connect();
+  // };
 
   isStreamExsits = (topic: string,env:string)=>{
     if(this.connections[topic + "|" + env])
