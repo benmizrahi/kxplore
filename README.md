@@ -1,4 +1,4 @@
-## ![alt text](https://raw.githubusercontent.com/benmizrahi/Kxplore/master/app/src/assets/k_logo.png) explore Kafka messages in a different way
+## ![alt text](https://raw.githubusercontent.com/benmizrahi/Kxplore/master/app/src/assets/k_logo.png)
 ## Montivation
 Our mission is to create a simple and stable tool that can give us the ability to explore data in our Kafka topics - Kxplore containes is a UI layer over Kafka consumer that gives powefull tools over you're Kafka cluster.
 This product was born after we were seeking for a Kafka management tool that can give also a gimes of the
@@ -78,21 +78,29 @@ docker run -p 3000:3000 -e "CONFIG_PATH=/path/to/env.json" -e "BASE_DOMAIN_URL=h
 
 Now you can browse the app in http://localhost:3000/
 
+### Mysql 
+
 ### Configuration File
 The Kxplore configuration file is a simple JSON file with arguments, you can set the PATH to the config file via the ENV parameter: CONFIG_PATH - the preferred location is /etc/kxplore/env.json
 
+** IMPORTENT - you must create kxplore db in the traget mysql you defined in the configuration **
 
 Configuration Example:
 ```
 
 {
     "authConfig":{
+      "SECRET_KEY":"SECRET_KEY",
       "googleConfig":{
-        "clientID":  "GOOGLE_AUTH_CLIENT_ID", //google auth cardentials
-        "clientSecret": "GOOGLE_SECRET"  : //google auth cardentials
+        "clientID":  "YOURE-GOOGLE-CLIENT-ID",
+        "clientSecret": "YOURE-GOOGLE-CLIENT-SECRET",
+        "passReqToCallback"  : true
       },
-      "SECRET_KEY":SECRET_KEY" // the secret key for encription
-    },
+      "superuser":{
+        "user":"Admin",
+        "password":"Admin"
+      }
+   },
     "mysql":{
       "host":"127.0.0.1", //MYSQL host
       "port":"3307", //MYSQL port
@@ -116,13 +124,53 @@ Configuration Example:
 
 ```
 
+### Example For Environment Configuration
+
+When adding an environment to Kxplore you must add configuration of how to communicate with Kafka Borkers.
+For Example Add the following config to you environment just replace the zookeeper url:
+
+```
+{
+	"groupId": "kxplore-group",
+	"properties": {
+		"fromOffset": "true",
+		"fetch.max.bytes": "52428800",
+		"max.poll.records": "20",
+		"auto.offset.reset": "largest",
+		"fetch.max.wait.ms": "10000",
+		"enable.auto.commit": "false",
+		"session.timeout.ms": "10000",
+		"max.poll.interval.ms": "10000",
+		"rebalance.backoff.ms": "10000",
+		"num.consumer.fetchers": "10",
+		"rebalance.max.retries": "3",
+		"auto.commit.interval.ms": "10000",
+		"queued.max.message.chunks": "50",
+		"refresh.leader.backoff.ms": "10000",
+		"partition.assignment.strategy": "roundrobin"
+	},
+	"getMetadata": true,
+	"threadCount": 5,
+	"zookeeperUrl": "host-of-zookeeper:2181"
+}
+```
+
+
 ### SQL Syntax
 
 The Kxplore tool has a fillter feature that gives the ability to filter and manipulate the stream data in real-time - here we will describe the syntax using the filter:
 
-1. select operators:
- * `\*` - pull all JSON fields
- * `field_name` | `field_name,field_name2` - pull the relevent field from the JSON - you can supply multiple fields with the comma (,) seperator.
- * `"$field_name->new_name"` - renaming a filed name.
- * `"$string_field.indexOf($string_field_2)->output"` - you can set any JavaScript manipulation you want.
-2. Where operator:
+To select all type * - to filter spcific fields write filed names with comma between AKA: fieldA,fieldB
+To filter based on fields type *where* and you're field filter AKA: filedA where fieldB = 1 (no need for quets in strings)
+Combine filters using the following operators : && , || , ~ (like) , > < <= >= , ! , and, or
+Any JavaScript Expression can be made with the following pattern : "YOU'RE_EXRESSION($filed_from_json)->RESULT_FIELD_NAME"
+
+
+### Future Of Kxplore 
+A few features will be included soon:
+
+1. Aggregation over stream 
+2. Define charts that updates every X interval
+3. Allow to inject SQL scripts 
+
+ 
