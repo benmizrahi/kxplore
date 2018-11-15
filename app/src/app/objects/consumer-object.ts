@@ -74,15 +74,17 @@ export class ConsumerObject{
 
   set data(objects:any[]){
     
-    this._data.length >= environment.maxMessage ? this.shiftItems(objects.length) : true
+    this._data.length >= environment.maxMessage ? this.shiftItems(this._data,objects.length) : true
     this._data = this._data.concat(objects) //save all data for filtering
     if(this._filter){
-      this.viewSource = this.applyFilter(this._data,this._filter).map(x => {
+      let data_filterd = this.applyFilter(this._data,this._filter).map(x => {
           return {offset: x.offset,
           partition : x.partition,
           message: JSON.stringify(x.message) 
         }
       });
+      this.viewSource = this.viewSource.concat(data_filterd)
+      this.viewSource.length >= environment.maxMessage ? this.shiftItems(this.viewSource,data_filterd.length) : true
     }else{
       this.viewSource = this._data.map(x => {
        return {offset: x.offset,
@@ -95,13 +97,14 @@ export class ConsumerObject{
   }
 
 
-  private shiftItems = (n:number) => {
+  private shiftItems = (array:Array<any>,n:number) => {
       console.log(`removes ${n} items from data`)
       while(n > 0){
-        this._data.shift();
+        array.shift();
         n--;
         this.counter--;
       }
+      return array
   }
  
   get data() { 
