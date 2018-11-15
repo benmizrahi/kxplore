@@ -160,9 +160,17 @@ For Example Add the following config to you environment just replace the zookeep
 
 The Kxplore tool has a fillter feature that gives the ability to filter and manipulate the stream data in real-time - here we will describe the syntax using the filter:
 
-1. select operators:
- * `\*` - pull all JSON fields
- * `field_name` | `field_name,field_name2` - pull the relevent field from the JSON - you can supply multiple fields with the comma (,) seperator.
- * `"$field_name->new_name"` - renaming a filed name.
- * `"$string_field.indexOf($string_field_2)->output"` - you can set any JavaScript manipulation you want.
-2. Where operator:
+To select all type * - to filter spcific fields write filed names with comma between AKA: fieldA,fieldB
+To filter based on fields type *where* and you're field filter AKA: filedA where fieldB = 1 (no need for quets in strings)
+Combine filters using the following operators : && , || , ~ (like) , > < <= >= , ! , and, or
+Any JavaScript Expression can be made with the following pattern : "YOU'RE_EXRESSION($filed_from_json)->RESULT_FIELD_NAME"
+
+
+### Future Of Kxplore 
+A few features will be included soon:
+
+1. Aggregation over stream 
+2. Define charts that updates every X interval
+3. Allow to inject SQL scripts 
+
+ 
