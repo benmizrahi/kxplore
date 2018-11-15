@@ -124,6 +124,36 @@ Configuration Example:
 
 ```
 
+### Example For Environment Configuration
+
+When adding an environment to Kxplore you must add configuration of how to communicate with Kafka Borkers.
+For Example Add the following config to you environment just replace the zookeeper url:
+
+```
+{
+	"groupId": "kxplore-group",
+	"properties": {
+		"fromOffset": "true",
+		"fetch.max.bytes": "52428800",
+		"max.poll.records": "20",
+		"auto.offset.reset": "largest",
+		"fetch.max.wait.ms": "10000",
+		"enable.auto.commit": "false",
+		"session.timeout.ms": "10000",
+		"max.poll.interval.ms": "10000",
+		"rebalance.backoff.ms": "10000",
+		"num.consumer.fetchers": "10",
+		"rebalance.max.retries": "3",
+		"auto.commit.interval.ms": "10000",
+		"queued.max.message.chunks": "50",
+		"refresh.leader.backoff.ms": "10000",
+		"partition.assignment.strategy": "roundrobin"
+	},
+	"getMetadata": true,
+	"threadCount": 5,
+	"zookeeperUrl": "host-of-zookeeper:2181"
+}
+```
 
 
 ### SQL Syntax
