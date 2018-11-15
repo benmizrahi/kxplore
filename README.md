@@ -1,4 +1,4 @@
-## Kxplore - explore Kafka messages in a different way
+## ![alt text](https://raw.githubusercontent.com/benmizrahi/Kxplore/master/app/src/assets/k_logo.png) explore Kafka messages in a different way
 ## Montivation
 Our mission is to create a simple and stable tool that can give us the ability to explore data in our Kafka topics - Kxplore containes is a UI layer over Kafka consumer that gives powefull tools over you're Kafka cluster.
 This product was born after we were seeking for a Kafka management tool that can give also a gimes of the

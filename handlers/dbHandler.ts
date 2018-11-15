@@ -13,23 +13,12 @@ export class DBActionResults implements IHandlerResults<DBAction> {
 
 @Injectable()
 export class IDbHandler implements IHandler<DBAction> {
-  //private connection string
-  private readonly connection:mysql.Connection;
 
   //connection to mysql
   constructor(@Inject(ILoggerHandler) private readonly logger: IHandler<LoggerAction>,
     @Inject('global-config') private readonly config: {mysql:{host,user,password,database,port}}){
     this.logger = logger;
     this.config = config;
-    this.connection = mysql.createConnection({
-      host     : this.config.mysql.host,
-      port: this.config.mysql.port,
-      user     : this.config.mysql.user,
-      password : this.config.mysql.password,
-      database : this.config.mysql.database
-      });
-
-    this.connection.connect();
     logger.handle({action:LoggerAction.info,payload:"MySql Loaded!"})
   }
 
@@ -54,17 +43,34 @@ export class IDbHandler implements IHandler<DBAction> {
   }
 
   private execute = (query):Promise<any> =>{
+    const connection = this.createConnection()
     console.info(`Executing Query ${query}`);
     return  new Promise((resolve, reject)=>{
-       this.connection.query(query,(err,results)=>{
+      connection.query(query,(err,results)=>{
              if(err) {
               console.error(`Query Error:\n ${err}`);
+              connection.end()
                reject(err)
              }
              console.info(`Query Finished Sucssesfully`);
+             connection.end()
              resolve(results)
        })
      })
+   }
+
+
+   private createConnection = () => {
+    let connection = mysql.createConnection({
+      host     : this.config.mysql.host,
+      port: this.config.mysql.port,
+      user     : this.config.mysql.user,
+      password : this.config.mysql.password,
+      database : this.config.mysql.database
+      });
+
+      connection.connect();
+      return connection;
    }
    
 }
