@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import {SocketKafkaService} from "./socket-kafka.service";
 import {ConsumerObject} from "../objects/consumer-object";
+import { UserProfileService } from './user-profile.service';
 declare var moment:Function;
 
 @Injectable()
@@ -8,7 +9,8 @@ export class StreamConsumerService {
  
   xAxisData = []
   
-  constructor(private socketKafkaService:SocketKafkaService) { }
+  constructor(private socketKafkaService:SocketKafkaService,
+    private readonly userProfileService:UserProfileService) { }
 
   private connections: { [id: string] : ConsumerObject; } = {};
   tmpFilter:any;
@@ -26,16 +28,11 @@ export class StreamConsumerService {
       return this.connections[topic + "|" + env];
     } 
     else{
-      this.connections[topic + "|" + env] = new ConsumerObject(this.socketKafkaService,topic,env,callback,timestamp,isOldest);
+      this.connections[topic + "|" + env] = new ConsumerObject(this.userProfileService,this.socketKafkaService,topic,env,callback,timestamp,isOldest);
     }
     this.connections[topic + "|" + env].connect();
     return this.connections[topic + "|" + env];
   }
-
-  // stopConnection = (topic: string,env:string) => {
-  //   if(this.connections[topic + "|" + env])
-  //     this.connections[topic + "|" + env].connect();
-  // };
 
   isStreamExsits = (topic: string,env:string)=>{
     if(this.connections[topic + "|" + env])

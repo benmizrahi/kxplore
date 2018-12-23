@@ -67,4 +67,6 @@ export class User {
 
             console.log(` superuser created!`)
     }
+
+    xw
 }

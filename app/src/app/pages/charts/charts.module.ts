@@ -11,7 +11,6 @@ import { AceEditorModule } from "ng2-ace-editor";
 import { FormsModule } from "@angular/forms";
 import { KChartsService } from "./services/kcharts.service";
 import { ColorPickerModule } from 'ngx-color-picker';
-import { NgDraggableWidgetModule } from 'ngx-draggable-widget';
 import { EditChart } from "./componenets/edit-chat.comp";
 import { ShowChart } from "./componenets/show-chart.comp";
 import { NgxChartsModule } from "@swimlane/ngx-charts";
@@ -35,7 +34,6 @@ const routes: Routes = [
         NbCardModule,
         NgxChartsModule,
         RouterModule.forRoot(routes,{}),
-        NgDraggableWidgetModule,
         ColorPickerModule,
         AppCommonModule],
     providers:[KChartsService],

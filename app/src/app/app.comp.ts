@@ -61,6 +61,13 @@ import { NbSidebarService } from '@nebular/theme';
       width: 10%;
       margin: -6px 4px 4px 4px;
      }
+
+    @media only screen and (max-width: 600px) {
+      .kafka-icon{
+        width: 65%;
+        margin: 1px 5px 7px 0px;
+      }
+    }
   `]
 })
 export class AppComponent {
@@ -79,14 +86,6 @@ export class AppComponent {
         {
             title:"Live",
             link: "/",
-        },
-        {
-          title:'Details',
-          link:"/envd"
-        },
-        {
-          title:'Charts',
-          link:"/charts"
         },
         {
           title:'Management',
