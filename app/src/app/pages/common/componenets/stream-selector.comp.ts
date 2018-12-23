@@ -40,8 +40,8 @@ declare var moment:Function;
                 </select>
             </div>
             <div class="col-lg-2" *ngIf="selectedTopic && selectedEnv && from == 3">
-                <input class="form-control" [(ngModel)]="selectedDateTime"  [owlDateTime]="dt1"  [owlDateTimeTrigger]="dt1" >
-                <owl-date-time #dt1 [showSecondsTimer]=true></owl-date-time>
+                <input nbInput class="form-control" [(ngModel)]="selectedDateTime"  placeholder="Form Picker" [nbDatepicker]="formpicker">
+                <nb-datepicker #formpicker></nb-datepicker>
             </div>
             <div class="col-lg-2" style="text-align: left;">
                 <button *ngIf="selectedTopic && selectedEnv" style="background: #afe0af;" class="btn btn-hero-warning" (click)="startStream()">Pull</button>

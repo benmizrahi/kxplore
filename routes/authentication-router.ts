@@ -106,8 +106,13 @@ export class AuthenticationRouter{
 
 
     app.get('/profile',this.jwtMiddleware.authCall,async (req,res)=>{
+      try{
        let user = await User.buildUserObjectById(req['__decoded_token'],this.dbHandler);
         res.send(user);
+      }
+      catch(e){
+        res.status(401).send('Something broke!')
+      }
     });
 
     app.post('/auth/signin', function(req, res, next) {
