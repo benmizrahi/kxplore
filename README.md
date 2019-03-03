@@ -153,16 +153,19 @@ For Example Add the following config to you environment just replace the zookeep
 	"zookeeperUrl": "host-of-zookeeper:2181"
 }
 ```
+## Images:
 
+### Home Page
+![Alt text](images/home_page.png?raw=true "Home Page")
 
-### SQL Syntax
+### Stream Events
 
-The Kxplore tool has a fillter feature that gives the ability to filter and manipulate the stream data in real-time - here we will describe the syntax using the filter:
+![Alt text](images/stream.png?raw=true "Home Page")
 
-To select all type * - to filter spcific fields write filed names with comma between AKA: fieldA,fieldB
-To filter based on fields type *where* and you're field filter AKA: filedA where fieldB = 1 (no need for quets in strings)
-Combine filters using the following operators : && , || , ~ (like) , > < <= >= , ! , and, or
-Any JavaScript Expression can be made with the following pattern : "YOU'RE_EXRESSION($filed_from_json)->RESULT_FIELD_NAME"
+### Filter Stream Data And Display JSONS
+
+![Alt text](images/filter_stream.png?raw=true "Home Page")
+
 
 
 ### Future Of Kxplore 
