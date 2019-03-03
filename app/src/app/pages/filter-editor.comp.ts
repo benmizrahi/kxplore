@@ -1,14 +1,15 @@
 import {Component, Input, AfterViewInit, OnDestroy, ViewChild, Output,EventEmitter} from '@angular/core';
 import 'brace/mode/sql';
+import { QueryBuilderConfig } from 'angular2-query-builder';
 
 @Component({
   selector: 'filter-editor',
   template: `
-        <ace-editor
-             mode="sql" [text]="content" [theme]="'eclipse'"
-             [options]="{maxLines: '3',minLines:'3'}"
-             (textChanged)="onChange($event)"
-            #editor style="height:200px;"></ace-editor>
+      <ace-editor
+      mode="sql" [text]="content" [theme]="'eclipse'"
+      [options]="{maxLines: '3',minLines:'3'}"
+      (textChanged)="onChange($event)"
+    #editor style="height:200px;"></ace-editor>
   `,
   styles:[`
     .aceEditorDirective {

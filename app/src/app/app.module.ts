@@ -3,7 +3,8 @@ import {APP_INITIALIZER, NgModule} from '@angular/core';
 import {
   NbActionsModule, NbCardModule, NbContextMenuModule, NbMenuModule, NbTabsetModule, NbThemeModule,
   NbUserModule,
-  NbPopoverModule
+  NbPopoverModule,
+  NbDialogModule
 } from '@nebular/theme';
 import {RouterModule, Routes} from '@angular/router';
 import { NbSidebarModule, NbLayoutModule, NbSidebarService } from '@nebular/theme'
@@ -26,17 +27,14 @@ import {UserProfileService} from "./services/user-profile.service";
 import {LoadingModule} from "ngx-loading";
 import { AceEditorModule } from 'ng2-ace-editor';
 import { NgbModule, NgbButtonsModule } from '@ng-bootstrap/ng-bootstrap';
-import {ToasterModule} from "angular2-toaster";
 import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
 import { MomentModule } from 'ngx-moment';
 import { Ng2SmartTableModule} from 'ng2-smart-table';
 import { FilterEditor } from './pages/filter-editor.comp';
 import { AngularFontAwesomeModule } from 'angular-font-awesome';
-import {NgXLightTableModule} from 'ngx-lighttable';
 import { EditModule } from './pages/edit/edit.module';
 import { AppCommonModule } from './pages/common/app-common.module';
 import { KChartsModule } from './pages/charts/charts.module';
-
 
 const routes: Routes = [
   {
@@ -56,7 +54,7 @@ const routes: Routes = [
     KafkaConsumer,
     UserAreaComp,
     LoginPageComp,
-    FilterEditor,
+    FilterEditor
   ],
   imports: [
     CommonModule,
@@ -72,6 +70,7 @@ const routes: Routes = [
     NbCardModule,
     NbMenuModule.forRoot(),
     NbUserModule,
+    NbDialogModule.forRoot(),
     NbActionsModule,
     SocketIoModule,
     HttpClientModule,
@@ -79,13 +78,11 @@ const routes: Routes = [
     NgxJsonViewerModule,
     AceEditorModule,
     NgbModule.forRoot(),
-    NbContextMenuModule,
-    ToasterModule.forRoot(),
+    NbContextMenuModule, 
     MomentModule,
     NbTabsetModule,
     Ng2SmartTableModule,
     NbPopoverModule,
-    NgXLightTableModule,
     AngularFontAwesomeModule,
     AppCommonModule,
     EditModule,
@@ -93,6 +90,7 @@ const routes: Routes = [
   ],
   providers: [
     NbSidebarService,
+    
     { provide: APP_BASE_HREF, useValue: '/' },
     StreamConsumerService,
     AuthenticationService,

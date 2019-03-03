@@ -1,6 +1,8 @@
 import {SocketKafkaService} from "../services/socket-kafka.service";
 import * as query from './sqlTokinazer/index';
 import { environment } from "../../environments/environment";
+import { UserProfileService } from "../services/user-profile.service";
+import { QueryBuilderConfig } from "angular2-query-builder";
 declare var moment:Function;
 
 export class ConsumerObject{
@@ -13,7 +15,9 @@ export class ConsumerObject{
   private consumerid;
   public selectedJSON = null;
 
-  constructor(private socketKafkaService:SocketKafkaService,
+  constructor(
+              private readonly userProfileService:UserProfileService,
+              private socketKafkaService:SocketKafkaService,
               public topic: string,
               public env:string,
               private callback:any,
@@ -72,13 +76,23 @@ export class ConsumerObject{
   private _data:any[] = [];
   viewSource:any[] = []
 
+  avalibleColumns:QueryBuilderConfig = {
+    fields:{
+
+    }
+  }
+
   set data(objects:any[]){
     
     this._data.length >= environment.maxMessage ? this.shiftItems(this._data,objects.length) : true
     this._data = this._data.concat(objects) //save all data for filtering
     if(this._filter){
-      let data_filterd = this.applyFilter(this._data,this._filter).map(x => {
-          return {offset: x.offset,
+      let data_filterd = this.applyFilter(this._data,this._filter)
+      .map(y=>{
+        this.updateAvalibleColumns(y.message)
+        return y;
+      }).map(x => {
+        return {offset: x.offset,
           partition : x.partition,
           message: JSON.stringify(x.message) 
         }
@@ -86,10 +100,14 @@ export class ConsumerObject{
       this.viewSource = this.viewSource.concat(data_filterd)
       this.viewSource.length >= environment.maxMessage ? this.shiftItems(this.viewSource,data_filterd.length) : true
     }else{
-      this.viewSource = this._data.map(x => {
-       return {offset: x.offset,
-              partition : x.partition,
-              message: JSON.stringify(x.message) 
+      this.viewSource = this._data.map(y=>{
+        this.updateAvalibleColumns(y.message)
+        return y;
+      }).map(x => { 
+        return {
+          offset: x.offset,
+          partition : x.partition,
+          message: JSON.stringify(x.message) 
         }
       });
     }
@@ -105,6 +123,15 @@ export class ConsumerObject{
         this.counter--;
       }
       return array
+  }
+
+  updateAvalibleColumns = (object) =>{
+    for (let column in object) {
+      if(!this.avalibleColumns.fields[column]){
+        this.avalibleColumns.fields[column] = {name: column, type: typeof column}
+      }
+    }
+    this.avalibleColumns = Object.assign({},this.avalibleColumns)
   }
  
   get data() { 

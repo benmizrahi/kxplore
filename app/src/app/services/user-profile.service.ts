@@ -6,7 +6,19 @@ import {environment} from "../../environments/environment";
 @Injectable()
 export class UserProfileService {
 
+  userColumns = []
+
   constructor(private http: HttpClient, private authenticationService: AuthenticationService) {
+    let columns = localStorage.getItem("user-columns")
+    if(columns){
+      this.userColumns = (JSON.parse(columns) as string[]);
+    }else{
+      this.userColumns = ["ALL"]
+    }
+  }
+
+  saveLocalColumns = () => {
+    localStorage.setItem("user-columns",JSON.stringify(this.userColumns));
   }
 
   userProfile:any;
@@ -42,7 +54,11 @@ export class UserProfileService {
         .subscribe(response => {
           this.userProfile = response;  
           resolve(true);
+        },(err)=>{
+          this.authenticationService.logout();
+          location.reload(true);
         })
+        
         
     })
   }

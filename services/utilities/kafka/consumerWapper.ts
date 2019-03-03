@@ -14,6 +14,7 @@ export class ConsumerWapper {
     isActive = false;
 
     private connect (topic:string,userId:string,environment:Environment,offsets:Array<any>) {
+        
         let self = this;
 
         self.client = new Client(environment.zookeeperUrl, environment.groupId + '___' + userId);
@@ -86,7 +87,7 @@ export class ConsumerWapper {
             this.consumer.pause();
             }
             catch(e){
-                console.log(1);
+                 console.log(1);
             }
         };
     }
@@ -94,9 +95,10 @@ export class ConsumerWapper {
 
 
     public pause(){
+        if(!this.isActive) return;
         this.isActive = false;
-        this.consumer.pause();
         this.consumer.removeListener('message',this.listener)
+        this.consumer.pause()
     }
 
     public resume(){

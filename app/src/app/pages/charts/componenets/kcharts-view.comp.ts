@@ -7,22 +7,7 @@ import { Chart } from "../../../../../../dataModels/chart";
 @Component({
     selector: 'kcharts-view',
     template: `
-        <nb-layout>
-             <nb-layout-header style="padding: 0 0rem 0.75rem !important;">
-                <stream-selector  style="width: 100%;"></stream-selector>
-            </nb-layout-header>
-            <nb-layout-column style="position: relative;">
-                    <div class="row">
-                        <div class="col-lg-12">
-                           <div [ngWidgetContainer]="containerConfig">                       
-                                <div *ngFor="let chart of charts" class="defined-chart" [(ngWidget)]="chart.options_drag" > 
-                                    <show-chart [chart]=chart></show-chart>
-                                </div>
-                            </div>         
-                    </div>
-                </div>
-            </nb-layout-column>
-        </nb-layout>
+      
     `,
     styles:[
         `
