@@ -63,15 +63,21 @@ export class StreamRouter {
             });
 
            client.on('pause', async (data) => {
-               let res = await this.kafkaHandler.handle({action:KafkaAction.pause,payload:{
+             try{
+                let res = await this.kafkaHandler.handle({action:KafkaAction.pause,payload:{
                     env:data.env,
                     topic:data.topic,
                     userId:client.decoded,
                     id:data.id
                 }})
-                connections[client.id] = connections[client.id].filter(keys =>{
+                if(connections[client.id])
+                connections[client.id] =  connections[client.id].filter(keys =>{
                     return keys.topic == data.topic && keys.env == data.env
                 });
+            }
+            catch(ex){
+                console.log(`error while filtering userId ${client.id} -- connection dosn't exsits`)
+            }
            });
            
            client.on('resume',async (data) =>{

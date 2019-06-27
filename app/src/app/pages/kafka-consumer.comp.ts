@@ -18,6 +18,7 @@ declare var Papa:any
       <nb-tab *ngFor="let connection of getKeys(streamConsumerService.connectionsList)" tabTitle="{{getTabName(connection)}}" [id]="connection" [active]="connection == getActiveTab()"> 
       <div class="row">
           <div class="col-lg-12">
+          <div class="loader" *ngIf="isStreamAlive(connection)"></div>
           <div class="row">
                <div class="col-lg-12 header-clean">
                 <nb-card style="margin-bottom:0">
@@ -40,12 +41,11 @@ declare var Papa:any
            </nb-card-header>
            <nb-card-body style=" padding: 0;">
               <consumer-wait *ngIf="!ifRowsExists(connection)" [title]="isStreamAlive(connection) ? 'Waiting For Data...' : 'Stream Lost :('" [showLoading]="isStreamAlive(connection)"></consumer-wait>
-              <div class="row" style="margin: 0;    padding: 10px;">    
-              <div *ngIf="ifRowsExists(connection)" class="header-clean col-lg-6"> 
+              <div class="row" style="margin: 0;padding: 10px;">    
+              <div *ngIf="ifRowsExists(connection)" class="header-clean col-lg-12"> 
                         <ngx-datatable class="material" 
-                         [loadingIndicator]="isStreamAlive(connection)"
                           [columnMode]="'force'"
-                          style="height: 650px;"
+                          style="height: 550px;"
                           [rowHeight]="50"
                           [headerHeight]="50"
                           [scrollbarV]="true"
@@ -175,8 +175,8 @@ export class KafkaConsumer {
 
   getCellValue = (column,value:string) => {
     if(column == "ALL"){
-      if(value.length > 90){
-        return value.substring(0,90) + '...'
+      if(value.length > 200){
+        return value.substring(0,200) + '...'
       }else{
         return value;
       }
