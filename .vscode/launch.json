@@ -7,12 +7,30 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch Program",
+            "name": "Kxplore Master",
             "env": {
-                "CONFIG_PATH":"${workspaceFolder}/env.dev.json",
-                "BASE_DOMAIN_URL":"http://localhost:3000"
+                "CONFIG_PATH":"${workspaceFolder}/src/kxplore-master/env.dev.json"
             },
-            "program": "${workspaceFolder}/startup.js"
-        }  
+            "program": "${workspaceFolder}/src/kxplore-master/startup.js"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Kxplore Worker 1",
+            "env": {
+                "CONFIG_PATH":"${workspaceFolder}/src/kxplore-master/env.dev.json"
+            },
+            "program": "${workspaceFolder}/src/kxplore-worker/startup.js"
+        },
+        ,
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Kxplore Worker 2",
+            "env": {
+                "CONFIG_PATH":"${workspaceFolder}/src/kxplore-master/env.dev.json"
+            },
+            "program": "${workspaceFolder}/src/kxplore-worker/startup.js"
+        }
     ]
 }

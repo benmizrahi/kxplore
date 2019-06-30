@@ -1,0 +1,1 @@
+//# sourceMappingURL=kinesis-describer.js.map
