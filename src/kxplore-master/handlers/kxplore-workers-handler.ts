@@ -6,32 +6,22 @@ import {EventEmitter } from 'events';
 @Injectable()
 export class KxploreWorkersHandler{
 
-    private readonly activeJobs:{ [uuid: string] : EventEmitter } = {}
+    private readonly activeJobs:{ [uuid: string] :  {event:EventEmitter, job:IJobInformation } } = {}
     private readonly activeWorkers:{ [uuid: string] : { socket:socket.Socket,activeJobs:IJobInformation[] }; } = {}
 
     connect = (uuid:string,socket:socket.Socket) => {
-        this.activeWorkers[uuid] = {socket:socket,activeJobs:[]};
-        let publish:{ [jobId: string]:IJobInformation } = {};
-        Object.keys(this.activeWorkers).filter(x=>x != uuid).
-            map(worker=>{
-                if(this.activeWorkers[worker].activeJobs.length > 0){
-                    this.activeWorkers[worker].activeJobs.map(job=>{
-                        if(!publish[job.uuid]){
-                            publish[job.uuid] = job;
-                        }
-                    })
-                }
-        })  
-        if(Object.keys(publish).length > 0){
-            Object.keys(publish).map(jobToPublish=>{
-                this.activeWorkers[uuid].socket.emit('NEW_JOB',publish[jobToPublish]);
-                this.activeWorkers[uuid].activeJobs.push(publish[jobToPublish]); 
-            })
-        }
+        let worker_state = {socket:socket,activeJobs:[]};
+        Object.keys(this.activeJobs).map(job_id=>{
+            worker_state.activeJobs.push(this.activeJobs[job_id].job)
+            this.activeWorkers[uuid].socket.emit('NEW_JOB',this.activeJobs[job_id].job);
+        })
+        
+        this.activeWorkers[uuid] = worker_state
+        
     }
 
     subscribe = (uuid:string):EventEmitter => {
-        return this.activeJobs[uuid];
+        return this.activeJobs[uuid].event;
     }
 
     disconnect = (uuid:string) =>{
@@ -41,14 +31,15 @@ export class KxploreWorkersHandler{
     }
 
     publishJob = (jobInfo:IJobInformation)=>{
-        this.activeJobs[jobInfo.uuid] = new EventEmitter();
+        this.activeJobs[jobInfo.uuid] =  {event:new EventEmitter(),job:jobInfo};
+        console.debug(`active_workers on job submit ${Object.keys(this.activeWorkers)}`)
         Object.keys(this.activeWorkers).map(worker=>{
             this.activeWorkers[worker].socket.emit('NEW_JOB',jobInfo);
             this.activeWorkers[worker].activeJobs.push(jobInfo); //push the job executing in each worker!           
             this.activeWorkers[worker].socket.on(`JOB_DATA_${jobInfo.uuid}`,( data:{messages:Array<any>,uuid:string})=>{
                 //on data from worker!
                 console.debug(`master retrive data from worker ${worker}...`)
-                this.activeJobs[jobInfo.uuid].emit('NEW_DATA',data)
+                this.activeJobs[jobInfo.uuid].event.emit('NEW_DATA',data)
             })
         })
     }
@@ -61,7 +52,7 @@ export class KxploreWorkersHandler{
                 this.activeWorkers[worker].activeJobs.splice(index, 1); //removes the job from active jobs!
             }
         });
-        this.activeJobs[jobInfo.uuid].removeAllListeners()
+        //this.activeJobs[jobInfo.uuid].event.removeAllListeners()
         delete this.activeJobs[jobInfo.uuid]
     }
 

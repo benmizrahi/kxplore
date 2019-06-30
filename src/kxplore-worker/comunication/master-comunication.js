@@ -62,20 +62,20 @@ var MasterCommunication = /** @class */ (function () {
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
-                            console.log("worker_id " + uuid + " - data: " + JSON.stringify(jobData));
+                            console.log("worker_id:" + process.env.WORKER_ID + ", uuid: " + uuid + " retrive job: " + JSON.stringify(jobData));
                             return [4 /*yield*/, IConsumer_1.matchPatten(jobData.env).start(jobData)];
                         case 1:
                             emiter = _a.sent();
                             emiter.on('NEW_DATA', function (data) {
-                                socket.emit("JOB_DATA_" + jobData.uuid, data);
-                                console.debug("worker publishing data...");
+                                //socket.emit(`JOB_DATA_${jobData.uuid}`,data);
+                                console.debug("worker: " + uuid + ", " + process.env.WORKER_ID + " is publishing data...");
                             });
                             return [2 /*return*/];
                     }
                 });
             }); });
             socket.on('disconnect', function (ex) {
-                console.error("Worker disconnected " + JSON.stringify(ex));
+                console.error("Worker disconnected workerid:" + uuid + ", error:  " + JSON.stringify(ex));
             });
         };
     }

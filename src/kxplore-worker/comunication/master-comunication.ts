@@ -15,18 +15,18 @@ export class MasterCommunication {
     start = (uuid:string)=>{
         
         var socket = io.connect(`http://${process.env.MASTER_HOST}/workers?uuid=${uuid}`, { reconnect: true});
-        
+    
         socket.on('NEW_JOB', async (jobData:IJobInformation) => {
-            console.log("worker_id " + uuid + " - data: " + JSON.stringify(jobData));
+            console.log(`worker_id:${process.env.WORKER_ID}, uuid: ${uuid} retrive job: ${JSON.stringify(jobData)}`);
             let emiter:EventEmitter = await matchPatten(jobData.env).start(jobData);
             emiter.on('NEW_DATA',(data)=>{
-                socket.emit(`JOB_DATA_${jobData.uuid}`,data);
-                console.debug(`worker publishing data...`)
+                //socket.emit(`JOB_DATA_${jobData.uuid}`,data);
+                console.debug(`worker: ${uuid}, ${process.env.WORKER_ID} is publishing data...`)
             })
         });
 
         socket.on('disconnect', function (ex) {
-            console.error(`Worker disconnected ${JSON.stringify(ex)}`)
+            console.error(`Worker disconnected workerid:${uuid}, error:  ${JSON.stringify(ex)}`)
         });
     }
 

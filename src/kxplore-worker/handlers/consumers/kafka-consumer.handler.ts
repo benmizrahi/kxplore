@@ -1,8 +1,7 @@
-import { IConsumer } from "./IConsumer";
 import { IJobInformation } from "../../../kxplore-shared-models/job-details";
 
 import { queue } from 'async';
-import { Client, Consumer, Offset,HighLevelConsumer } from 'kafka-node';
+import { Client, ConsumerGroup, Offset } from 'kafka-node';
 import { isArray } from 'util';
 import { Func } from 'mocha';
 import { IEnvironment } from '../../../kxplore-shared-models/envierment';
@@ -25,8 +24,9 @@ export class KafkaConsumerHandler extends AbstractConsumer {
 }
 
 export class ConsumerWapper {
+   
     client: Client;
-    consumer: Consumer;
+    consumer: ConsumerGroup;
     offset: Offset;
     listener:Func
 
@@ -36,23 +36,14 @@ export class ConsumerWapper {
         
         let self = this;
 
-        self.client = new Client(environment.props['zookeeperUrl'], 'kxplore_job' + '___' + job_uuid);
-        let offset_values = offsets ? Object.keys(offsets[topic]).map(x=>{
-            return {
-                topic:topic,
-                partition:parseInt(x),
-                offset:offsets[topic][x]
-            }
-        }) : null
-        if(offset_values){
-            self.consumer = new Consumer(this.client,offset_values , environment.props);
-        }else{
-            self.consumer = new HighLevelConsumer(this.client,[{topic:topic}] , environment.props);
-        }
+        const assign = Object.assign({
+            groupId: `kxplore__group__${job_uuid}`,
+            fromOffset: 'latest' 
+
+        },environment.props.propeties)
         
-        self.offset = new Offset(self.client);
-        
-        console.info(`Listening for the ${topic} messages...`);
+        self.consumer = new ConsumerGroup(Object.assign({ id: `consumer_${process.env.WORKER_ID}` }, assign), [topic]);
+        console.info(`Listening for the topic: ${topic} messages,worker id: ${process.env.WORKER_ID}`);
     }
 
     public consume<T>(topic:string,userId:string,environment:IEnvironment,offsets:Array<any>,eventEmitter:EventEmitter): void {  
@@ -71,20 +62,18 @@ export class ConsumerWapper {
             console.error(`Kafka error happened: ${JSON.stringify(err)}`);
         });
 
-        self.consumer.on('offsetOutOfRange', function (topicObj: any) {
-            console.error(`offsetOutOfRange error!`)
-        });
-
         const q = queue(function(payload: T, cb: any) {
             setImmediate(() => {
                 eventEmitter.emit('NEW_DATA',{payload:payload})
+                console.debug(`emit data on worker: ${process.env.WORKER_ID}`)
                 cb();
             });
-        }, environment.props['threadCount']);
+        }, 1);
 
         q.drain = function() {
             self.consumer.resume();
         };
+
         self.listener = this.messageListener(q)
         self.consumer.on('message',self.listener);
 
@@ -94,6 +83,7 @@ export class ConsumerWapper {
     private messageListener (q: any) {
         return (messageWrapper: any)  => {
             try{
+                console.debug(`worker consumer: ${process.env.WORKER_ID} - processing data! `)
             let message: any = messageWrapper.value.split('\n').map(x=>JSON.parse(x));
             if(!isArray(message))
                 message = [message]
@@ -104,8 +94,8 @@ export class ConsumerWapper {
                         message:x
                     }
             })
-            q.push(message);
-            this.consumer.pause();
+                q.push(message);
+                this.consumer.pause();
             }
             catch(e){
                  console.log(1);

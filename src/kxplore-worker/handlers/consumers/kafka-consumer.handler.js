@@ -36,22 +36,12 @@ var ConsumerWapper = /** @class */ (function () {
     }
     ConsumerWapper.prototype.connect = function (topic, job_uuid, environment, offsets) {
         var self = this;
-        self.client = new kafka_node_1.Client(environment.props['zookeeperUrl'], 'kxplore_job' + '___' + job_uuid);
-        var offset_values = offsets ? Object.keys(offsets[topic]).map(function (x) {
-            return {
-                topic: topic,
-                partition: parseInt(x),
-                offset: offsets[topic][x]
-            };
-        }) : null;
-        if (offset_values) {
-            self.consumer = new kafka_node_1.Consumer(this.client, offset_values, environment.props);
-        }
-        else {
-            self.consumer = new kafka_node_1.HighLevelConsumer(this.client, [{ topic: topic }], environment.props);
-        }
-        self.offset = new kafka_node_1.Offset(self.client);
-        console.info("Listening for the " + topic + " messages...");
+        var assign = Object.assign({
+            groupId: "kxplore__group__" + job_uuid,
+            fromOffset: 'latest'
+        }, environment.props.propeties);
+        self.consumer = new kafka_node_1.ConsumerGroup(Object.assign({ id: "consumer_" + process.env.WORKER_ID }, assign), [topic]);
+        console.info("Listening for the topic: " + topic + " messages,worker id: " + process.env.WORKER_ID);
     };
     ConsumerWapper.prototype.consume = function (topic, userId, environment, offsets, eventEmitter) {
         var self = this;
@@ -66,15 +56,13 @@ var ConsumerWapper = /** @class */ (function () {
             }
             console.error("Kafka error happened: " + JSON.stringify(err));
         });
-        self.consumer.on('offsetOutOfRange', function (topicObj) {
-            console.error("offsetOutOfRange error!");
-        });
         var q = async_1.queue(function (payload, cb) {
             setImmediate(function () {
                 eventEmitter.emit('NEW_DATA', { payload: payload });
+                console.debug("emit data on worker: " + process.env.WORKER_ID);
                 cb();
             });
-        }, environment.props['threadCount']);
+        }, 1);
         q.drain = function () {
             self.consumer.resume();
         };
@@ -86,6 +74,7 @@ var ConsumerWapper = /** @class */ (function () {
         var _this = this;
         return function (messageWrapper) {
             try {
+                console.debug("worker consumer: " + process.env.WORKER_ID + " - processing data! ");
                 var message = messageWrapper.value.split('\n').map(function (x) { return JSON.parse(x); });
                 if (!util_1.isArray(message))
                     message = [message];

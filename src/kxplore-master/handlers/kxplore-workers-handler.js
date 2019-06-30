@@ -14,27 +14,15 @@ var KxploreWorkersHandler = /** @class */ (function () {
         this.activeJobs = {};
         this.activeWorkers = {};
         this.connect = function (uuid, socket) {
-            _this.activeWorkers[uuid] = { socket: socket, activeJobs: [] };
-            var publish = {};
-            Object.keys(_this.activeWorkers).filter(function (x) { return x != uuid; }).
-                map(function (worker) {
-                if (_this.activeWorkers[worker].activeJobs.length > 0) {
-                    _this.activeWorkers[worker].activeJobs.map(function (job) {
-                        if (!publish[job.uuid]) {
-                            publish[job.uuid] = job;
-                        }
-                    });
-                }
+            var worker_state = { socket: socket, activeJobs: [] };
+            Object.keys(_this.activeJobs).map(function (job_id) {
+                worker_state.activeJobs.push(_this.activeJobs[job_id].job);
+                _this.activeWorkers[uuid].socket.emit('NEW_JOB', _this.activeJobs[job_id].job);
             });
-            if (Object.keys(publish).length > 0) {
-                Object.keys(publish).map(function (jobToPublish) {
-                    _this.activeWorkers[uuid].socket.emit('NEW_JOB', publish[jobToPublish]);
-                    _this.activeWorkers[uuid].activeJobs.push(publish[jobToPublish]);
-                });
-            }
+            _this.activeWorkers[uuid] = worker_state;
         };
         this.subscribe = function (uuid) {
-            return _this.activeJobs[uuid];
+            return _this.activeJobs[uuid].event;
         };
         this.disconnect = function (uuid) {
             if (_this.activeWorkers[uuid]) {
@@ -42,14 +30,15 @@ var KxploreWorkersHandler = /** @class */ (function () {
             }
         };
         this.publishJob = function (jobInfo) {
-            _this.activeJobs[jobInfo.uuid] = new events_1.EventEmitter();
+            _this.activeJobs[jobInfo.uuid] = { event: new events_1.EventEmitter(), job: jobInfo };
+            console.debug("active_workers on job submit " + Object.keys(_this.activeWorkers));
             Object.keys(_this.activeWorkers).map(function (worker) {
                 _this.activeWorkers[worker].socket.emit('NEW_JOB', jobInfo);
                 _this.activeWorkers[worker].activeJobs.push(jobInfo); //push the job executing in each worker!           
                 _this.activeWorkers[worker].socket.on("JOB_DATA_" + jobInfo.uuid, function (data) {
                     //on data from worker!
                     console.debug("master retrive data from worker " + worker + "...");
-                    _this.activeJobs[jobInfo.uuid].emit('NEW_DATA', data);
+                    _this.activeJobs[jobInfo.uuid].event.emit('NEW_DATA', data);
                 });
             });
         };
@@ -61,7 +50,7 @@ var KxploreWorkersHandler = /** @class */ (function () {
                     _this.activeWorkers[worker].activeJobs.splice(index, 1); //removes the job from active jobs!
                 }
             });
-            _this.activeJobs[jobInfo.uuid].removeAllListeners();
+            //this.activeJobs[jobInfo.uuid].event.removeAllListeners()
             delete _this.activeJobs[jobInfo.uuid];
         };
     }

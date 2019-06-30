@@ -23,12 +23,18 @@
             "request": "launch",
             "name": "kxplore-worker-1",
             "cwd": "${workspaceFolder}/src/kxplore-worker/",
+            "env": {
+                "WORKER_ID":"1"
+            },
             "program": "${workspaceFolder}/src/kxplore-worker/startup.js"
         },
         {
             "type": "node",
             "request": "launch",
             "name": "kxplore-worker-2",
+            "env": {
+                "WORKER_ID":"2"
+            },
             "cwd": "${workspaceFolder}/src/kxplore-worker/",
             "program": "${workspaceFolder}/src/kxplore-worker/startup.js"
         }
