@@ -104,7 +104,7 @@ var JobExecuterRoute = /** @class */ (function () {
             }); });
             io.of('/subscribe')
                 .on('connection', function (socket) {
-                var jobId = socket.request._query['jobId'];
+                var jobId = socket.request._query['uuid'];
                 _this.kxploreWorkersHandler.subscribe(jobId).on('NEW_DATA', function (data) {
                     socket.emit("MESSAGES_" + jobId, data);
                 });

@@ -47,6 +47,7 @@ export class KxploreWorkersHandler{
             this.activeWorkers[worker].activeJobs.push(jobInfo); //push the job executing in each worker!           
             this.activeWorkers[worker].socket.on(`JOB_DATA_${jobInfo.uuid}`,( data:{messages:Array<any>,uuid:string})=>{
                 //on data from worker!
+                console.debug(`master retrive data from worker ${worker}...`)
                 this.activeJobs[jobInfo.uuid].emit('NEW_DATA',data)
             })
         })

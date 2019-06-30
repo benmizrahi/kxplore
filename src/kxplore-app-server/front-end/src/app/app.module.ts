@@ -34,7 +34,6 @@ import { FilterEditor } from './pages/filter-editor.comp';
 import { AngularFontAwesomeModule } from 'angular-font-awesome';
 import { EditModule } from './pages/edit/edit.module';
 import { AppCommonModule } from './pages/common/app-common.module';
-import { KChartsModule } from './pages/charts/charts.module';
 
 const routes: Routes = [
   {
@@ -85,8 +84,7 @@ const routes: Routes = [
     NbPopoverModule,
     AngularFontAwesomeModule,
     AppCommonModule,
-    EditModule,
-    KChartsModule
+    EditModule
   ],
   providers: [
     NbSidebarService,

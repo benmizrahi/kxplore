@@ -43,7 +43,7 @@ export class JobExecuterRoute{
 
     io.of('/subscribe')
        .on('connection',(socket:SocketIO.Socket)=>{
-        const jobId = socket.request._query['jobId'];
+        const jobId = socket.request._query['uuid'];
         this.kxploreWorkersHandler.subscribe(jobId).on('NEW_DATA',data => {
             socket.emit(`MESSAGES_${jobId}`,data)
          })

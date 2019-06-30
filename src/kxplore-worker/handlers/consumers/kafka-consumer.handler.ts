@@ -36,7 +36,7 @@ export class ConsumerWapper {
         
         let self = this;
 
-        self.client = new Client(environment.props['zookeeperUrl'], environment.props['groupId'] + '___' + job_uuid);
+        self.client = new Client(environment.props['zookeeperUrl'], 'kxplore_job' + '___' + job_uuid);
         let offset_values = offsets ? Object.keys(offsets[topic]).map(x=>{
             return {
                 topic:topic,
@@ -76,7 +76,10 @@ export class ConsumerWapper {
         });
 
         const q = queue(function(payload: T, cb: any) {
-            setImmediate(() => eventEmitter.emit('NEW_DATA',{payload:payload}));
+            setImmediate(() => {
+                eventEmitter.emit('NEW_DATA',{payload:payload})
+                cb();
+            });
         }, environment.props['threadCount']);
 
         q.drain = function() {

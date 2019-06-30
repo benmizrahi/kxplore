@@ -56,24 +56,26 @@ var MasterCommunication = /** @class */ (function () {
         this.config = config;
         //uuid = server id~
         this.start = function (uuid) {
-            var socket = io.connect("http://localhost:3001/workers?uuid=" + uuid, { reconnect: true });
-            socket.on('NEW_JOB', function (data) { return __awaiter(_this, void 0, void 0, function () {
+            var socket = io.connect("http://" + process.env.MASTER_HOST + "/workers?uuid=" + uuid, { reconnect: true });
+            socket.on('NEW_JOB', function (jobData) { return __awaiter(_this, void 0, void 0, function () {
                 var emiter;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
-                            console.log("worker_id " + uuid + " - data: " + JSON.stringify(data));
-                            return [4 /*yield*/, IConsumer_1.matchPatten(data.env).start(data)];
+                            console.log("worker_id " + uuid + " - data: " + JSON.stringify(jobData));
+                            return [4 /*yield*/, IConsumer_1.matchPatten(jobData.env).start(jobData)];
                         case 1:
                             emiter = _a.sent();
-                            emiter.on('DATA', function (data) {
-                                socket.emit("JOB_DATA_" + data.uuid, data);
+                            emiter.on('NEW_DATA', function (data) {
+                                socket.emit("JOB_DATA_" + jobData.uuid, data);
+                                console.debug("worker publishing data...");
                             });
                             return [2 /*return*/];
                     }
                 });
             }); });
             socket.on('disconnect', function (ex) {
+                console.error("Worker disconnected " + JSON.stringify(ex));
             });
         };
     }

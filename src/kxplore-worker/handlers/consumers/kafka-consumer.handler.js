@@ -36,7 +36,7 @@ var ConsumerWapper = /** @class */ (function () {
     }
     ConsumerWapper.prototype.connect = function (topic, job_uuid, environment, offsets) {
         var self = this;
-        self.client = new kafka_node_1.Client(environment.props['zookeeperUrl'], environment.props['groupId'] + '___' + job_uuid);
+        self.client = new kafka_node_1.Client(environment.props['zookeeperUrl'], 'kxplore_job' + '___' + job_uuid);
         var offset_values = offsets ? Object.keys(offsets[topic]).map(function (x) {
             return {
                 topic: topic,
@@ -70,7 +70,10 @@ var ConsumerWapper = /** @class */ (function () {
             console.error("offsetOutOfRange error!");
         });
         var q = async_1.queue(function (payload, cb) {
-            setImmediate(function () { return eventEmitter.emit('NEW_DATA', { payload: payload }); });
+            setImmediate(function () {
+                eventEmitter.emit('NEW_DATA', { payload: payload });
+                cb();
+            });
         }, environment.props['threadCount']);
         q.drain = function () {
             self.consumer.resume();

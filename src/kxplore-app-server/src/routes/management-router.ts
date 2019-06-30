@@ -1,18 +1,15 @@
 import { Injectable, Inject } from "@decorators/di";
-import { IDbHandler } from "../handlers/dbHandler";
+import { IDbHandler } from "../handlers/db-handler";
 import { IHandler } from "../interfaces/IHandler";
-import { DBAction, LoggerAction, KafkaAction } from "../interfaces/enums";
-import { ILoggerHandler } from "../handlers/loggerHandler";
+import { DBAction} from "../interfaces/enums";
 import { JWTAuthMiddleware } from "../middlewares/jwt-auth-middleware";
 import { User } from "../dataModels/user";
-import { KafkaHandler } from "../handlers/kafkaHandler";
 
 @Injectable()
 export class ManagmentRouter{
 
     constructor(
         @Inject(IDbHandler) private readonly dbHandler:IHandler<DBAction>,
-        @Inject(KafkaHandler) private readonly kafkaHandler:KafkaHandler,
         @Inject(JWTAuthMiddleware) private readonly jwtMiddleware: JWTAuthMiddleware,
         @Inject('global-config') private readonly authConfig:{googleConfig:any,SECRET_KEY:string,superuser:any}){
       }
@@ -46,7 +43,7 @@ export class ManagmentRouter{
                         values('${req.body.envName}','${JSON.stringify(req.body.props)}');
                 `})
                 }
-                await this.kafkaHandler.handle({action:KafkaAction.reloadEnvierment,payload:{}})
+                //await this.kafkaHandler.handle({action:KafkaAction.reloadEnvierment,payload:{}})
                 res.json(await this.getEnvierments())
             }
             catch(e) {
@@ -61,7 +58,7 @@ export class ManagmentRouter{
                     DELETE FROM  dim_envierments
                     WHERE id = ${req.body.id}
                 `})
-                await this.kafkaHandler.handle({action:KafkaAction.reloadEnvierment,payload:{}})
+               // await this.kafkaHandler.handle({action:KafkaAction.reloadEnvierment,payload:{}})
                 res.json(await this.getEnvierments())
             }
             catch(e) {

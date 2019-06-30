@@ -48,6 +48,7 @@ var KxploreWorkersHandler = /** @class */ (function () {
                 _this.activeWorkers[worker].activeJobs.push(jobInfo); //push the job executing in each worker!           
                 _this.activeWorkers[worker].socket.on("JOB_DATA_" + jobInfo.uuid, function (data) {
                     //on data from worker!
+                    console.debug("master retrive data from worker " + worker + "...");
                     _this.activeJobs[jobInfo.uuid].emit('NEW_DATA', data);
                 });
             });

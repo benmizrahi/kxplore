@@ -19,6 +19,7 @@ import { QueryBuilderConfig } from 'angular2-query-builder';
         overflow: auto;
     }
   `]
+  
 })
 
 export class FilterEditor implements AfterViewInit {

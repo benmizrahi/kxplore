@@ -5,8 +5,7 @@ import { Injectable, Inject } from '@decorators/di';
 import { IHandler } from '../interfaces/IHandler';
 import { LoggerAction, DBAction } from '../interfaces/enums';
 import { JWTAuthMiddleware } from '../middlewares/jwt-auth-middleware';
-import { IDbHandler } from '../handlers/dbHandler';
-import { ILoggerHandler } from '../handlers/loggerHandler';
+import { IDbHandler } from '../handlers/db-handler';
 const googleStrategy = require( 'passport-google-oauth2' ).Strategy;
 const localStrategy = require('passport-local').Strategy;
 const passport  = require( 'passport');
@@ -16,7 +15,6 @@ export class AuthenticationRouter{
 
   constructor(
     @Inject(IDbHandler) private readonly dbHandler:IHandler<DBAction>,
-    @Inject(ILoggerHandler) private readonly logger:IHandler<LoggerAction>,
     @Inject(JWTAuthMiddleware) private readonly jwtMiddleware: JWTAuthMiddleware,
     @Inject('global-config') private readonly config:any){
       

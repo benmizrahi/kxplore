@@ -2,7 +2,6 @@ import * as mysql from 'mysql';
 import { IHandler, IHandlerAction, IHandlerResults } from '../interfaces/IHandler';
 import { DBAction, LoggerAction } from '../interfaces/enums';
 import { Injectable, Inject } from '@decorators/di';
-import { ILoggerHandler } from './loggerHandler';
 import * as sequelize from 'sequelize'
 
 export class DBActionResults implements IHandlerResults<DBAction> {
@@ -15,11 +14,9 @@ export class DBActionResults implements IHandlerResults<DBAction> {
 export class IDbHandler implements IHandler<DBAction> {
 
   //connection to mysql
-  constructor(@Inject(ILoggerHandler) private readonly logger: IHandler<LoggerAction>,
-    @Inject('global-config') private readonly config: {mysql:{host,user,password,database,port}}){
-    this.logger = logger;
+  constructor(@Inject('global-config') private readonly config: {mysql:{host,user,password,database,port}}){
     this.config = config;
-    logger.handle({action:LoggerAction.info,payload:"MySql Loaded!"})
+    console.info("MySql Loaded!")
   }
 
   //public function to execute opertion vs db
@@ -33,7 +30,7 @@ export class IDbHandler implements IHandler<DBAction> {
       }
     }
     catch(ex){
-      this.logger.handle({action:LoggerAction.error,payload:`db throws an error ${ex}`})
+      console.error(`db throws an error ${ex}`);
       return {
         status:false,
         action:handleParams.action,

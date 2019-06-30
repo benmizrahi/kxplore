@@ -7,30 +7,35 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Kxplore Master",
-            "env": {
-                "CONFIG_PATH":"${workspaceFolder}/src/kxplore-master/env.dev.json"
-            },
+            "name": "kxplore-app-server",
+            "cwd": "${workspaceFolder}/src/kxplore-app-server/",
+            "program": "${workspaceFolder}/src/kxplore-app-server/src/startup.js"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "kxplore-master",
+            "cwd": "${workspaceFolder}/src/kxplore-master/",
             "program": "${workspaceFolder}/src/kxplore-master/startup.js"
         },
         {
             "type": "node",
             "request": "launch",
-            "name": "Kxplore Worker 1",
-            "env": {
-                "CONFIG_PATH":"${workspaceFolder}/src/kxplore-master/env.dev.json"
-            },
+            "name": "kxplore-worker-1",
+            "cwd": "${workspaceFolder}/src/kxplore-worker/",
             "program": "${workspaceFolder}/src/kxplore-worker/startup.js"
         },
-        ,
         {
             "type": "node",
             "request": "launch",
-            "name": "Kxplore Worker 2",
-            "env": {
-                "CONFIG_PATH":"${workspaceFolder}/src/kxplore-master/env.dev.json"
-            },
+            "name": "kxplore-worker-2",
+            "cwd": "${workspaceFolder}/src/kxplore-worker/",
             "program": "${workspaceFolder}/src/kxplore-worker/startup.js"
         }
-    ]
+        ],"compounds": [
+            {
+                "name": "run-all",
+                "configurations": ["kxplore-app-server","kxplore-master","kxplore-worker-1","kxplore-worker-2"]
+            }
+        ]
 }

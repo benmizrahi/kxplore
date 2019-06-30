@@ -10,7 +10,7 @@
         },
         "exclude": [
             "app",
-            "dist",
-            "services/utilities/sqlTokinazer",
-            "docker/*"]
+            "src/dist",
+            "front-end",
+            "tester-producer.js"]
 }
