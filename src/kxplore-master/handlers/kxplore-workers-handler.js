@@ -17,7 +17,7 @@ var KxploreWorkersHandler = /** @class */ (function () {
             var worker_state = { socket: socket, activeJobs: [] };
             Object.keys(_this.activeJobs).map(function (job_id) {
                 worker_state.activeJobs.push(_this.activeJobs[job_id].job);
-                _this.activeWorkers[uuid].socket.emit('NEW_JOB', _this.activeJobs[job_id].job);
+                worker_state.socket.emit('NEW_JOB', _this.activeJobs[job_id].job);
             });
             _this.activeWorkers[uuid] = worker_state;
         };

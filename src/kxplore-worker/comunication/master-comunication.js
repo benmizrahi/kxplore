@@ -67,7 +67,7 @@ var MasterCommunication = /** @class */ (function () {
                         case 1:
                             emiter = _a.sent();
                             emiter.on('NEW_DATA', function (data) {
-                                //socket.emit(`JOB_DATA_${jobData.uuid}`,data);
+                                socket.emit("JOB_DATA_" + jobData.uuid, data);
                                 console.debug("worker: " + uuid + ", " + process.env.WORKER_ID + " is publishing data...");
                             });
                             return [2 /*return*/];

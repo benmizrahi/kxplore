@@ -20,7 +20,7 @@ export class MasterCommunication {
             console.log(`worker_id:${process.env.WORKER_ID}, uuid: ${uuid} retrive job: ${JSON.stringify(jobData)}`);
             let emiter:EventEmitter = await matchPatten(jobData.env).start(jobData);
             emiter.on('NEW_DATA',(data)=>{
-                //socket.emit(`JOB_DATA_${jobData.uuid}`,data);
+                socket.emit(`JOB_DATA_${jobData.uuid}`,data);
                 console.debug(`worker: ${uuid}, ${process.env.WORKER_ID} is publishing data...`)
             })
         });

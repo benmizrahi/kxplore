@@ -13,7 +13,7 @@ export class KxploreWorkersHandler{
         let worker_state = {socket:socket,activeJobs:[]};
         Object.keys(this.activeJobs).map(job_id=>{
             worker_state.activeJobs.push(this.activeJobs[job_id].job)
-            this.activeWorkers[uuid].socket.emit('NEW_JOB',this.activeJobs[job_id].job);
+            worker_state.socket.emit('NEW_JOB',this.activeJobs[job_id].job);
         })
         
         this.activeWorkers[uuid] = worker_state

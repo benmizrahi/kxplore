@@ -1,119 +1,46 @@
 import { IJobInformation } from "../../../kxplore-shared-models/job-details";
-
-import { queue } from 'async';
-import { Client, ConsumerGroup, Offset } from 'kafka-node';
-import { isArray } from 'util';
-import { Func } from 'mocha';
-import { IEnvironment } from '../../../kxplore-shared-models/envierment';
+var kafka = require('kafka-node');
 import { EventEmitter } from "events";
 import { AbstractConsumer } from "../abstract-consumer.hanler";
 
 export class KafkaConsumerHandler extends AbstractConsumer {
 
     init(jobInfo: IJobInformation,jobObject:{emiter:EventEmitter,privateComp:any}) {
-        const consumer = new ConsumerWapper();
-        consumer.consume<any>(jobInfo.payload['topic'],jobInfo.uuid,jobInfo.env,null,jobObject.emiter);
-        jobObject.privateComp = consumer;
+        var options = {
+            // connect directly to kafka broker (instantiates a KafkaClient)
+            kafkaHost: '127.0.0.1:9092',
+            groupId: 'test',
+            autoCommit: true,
+            autoCommitIntervalMs: 5000,
+            sessionTimeout: 15000,
+            fetchMaxBytes: 10 * 1024 * 1024, // 10 MB
+            // An array of partition assignment protocols ordered by preference. 'roundrobin' or 'range' string for
+            // built ins (see below to pass in custom assignment protocol)
+            protocol: ['roundrobin'],
+            // Offsets to use for new groups other options could be 'earliest' or 'none'
+            // (none will emit an error if no offsets were saved) equivalent to Java client's auto.offset.reset
+            fromOffset: 'latest',
+            // how to recover from OutOfRangeOffset error (where save offset is past server retention)
+            // accepts same value as fromOffset
+            outOfRangeOffset: 'latest'
+          };
         
+          var consumerGroup = new kafka.ConsumerGroup(options, jobInfo.payload['topic']);
+        
+          consumerGroup.on('message', function (message) {
+            console.log('Message: ' + message);
+            jobObject.emiter.emit('NEW_DATA',{payload:message})
+          });
+        
+          consumerGroup.on('error', function onError(error) {
+            console.error(error);
+          });
+        
+        console.info(`Listening for the topic: ${jobInfo.payload['topic']} messages,worker id: ${process.env.WORKER_ID}`);;
     }
 
     dispose(jobObject:{emiter:EventEmitter,privateComp:any}){
-        (jobObject.privateComp as ConsumerWapper).pause()
+        jobObject.privateComp.stop()
     }
 
-}
-
-export class ConsumerWapper {
-   
-    client: Client;
-    consumer: ConsumerGroup;
-    offset: Offset;
-    listener:Func
-
-    isActive = false;
-
-    private connect (topic:string,job_uuid:string,environment:IEnvironment,offsets:Array<any>) {
-        
-        let self = this;
-
-        const assign = Object.assign({
-            groupId: `kxplore__group__${job_uuid}`,
-            fromOffset: 'latest' 
-
-        },environment.props.propeties)
-        
-        self.consumer = new ConsumerGroup(Object.assign({ id: `consumer_${process.env.WORKER_ID}` }, assign), [topic]);
-        console.info(`Listening for the topic: ${topic} messages,worker id: ${process.env.WORKER_ID}`);
-    }
-
-    public consume<T>(topic:string,userId:string,environment:IEnvironment,offsets:Array<any>,eventEmitter:EventEmitter): void {  
-        let self = this;
-        self.connect(topic,userId,environment,offsets);
-
-        process.on('SIGINT', () => self.consumer.close(true, () => process.exit()));
-
-        self.consumer.on('error', (err: any) => {
-            const failedToRebalanceConsumerError = !err.message || err.message && err.message.includes('FailedToRebalanceConsumerError') 
-            || err.stack.includes('FailedToRebalanceConsumerError');
-            const leaderNotAvailable = err.message && err.message.includes('LeaderNotAvailable');
-            if (failedToRebalanceConsumerError || leaderNotAvailable) {
-                return setImmediate(() => self.consumer.close(true, () => self.connect(topic,userId,environment,offsets)));
-            }
-            console.error(`Kafka error happened: ${JSON.stringify(err)}`);
-        });
-
-        const q = queue(function(payload: T, cb: any) {
-            setImmediate(() => {
-                eventEmitter.emit('NEW_DATA',{payload:payload})
-                console.debug(`emit data on worker: ${process.env.WORKER_ID}`)
-                cb();
-            });
-        }, 1);
-
-        q.drain = function() {
-            self.consumer.resume();
-        };
-
-        self.listener = this.messageListener(q)
-        self.consumer.on('message',self.listener);
-
-        self.isActive = true;
-    }
-
-    private messageListener (q: any) {
-        return (messageWrapper: any)  => {
-            try{
-                console.debug(`worker consumer: ${process.env.WORKER_ID} - processing data! `)
-            let message: any = messageWrapper.value.split('\n').map(x=>JSON.parse(x));
-            if(!isArray(message))
-                message = [message]
-                message = message.map(x=>{
-                    return {
-                        partition:messageWrapper.partition,
-                        offset:messageWrapper.offset,
-                        message:x
-                    }
-            })
-                q.push(message);
-                this.consumer.pause();
-            }
-            catch(e){
-                 console.log(1);
-            }
-        };
-    }
-
-
-    public pause(){
-        if(!this.isActive) return;
-        this.isActive = false;
-        this.consumer.removeListener('message',this.listener)
-        this.consumer.pause()
-    }
-
-    public resume(){
-        this.isActive = true;
-        this.consumer.resume()
-        this.consumer.on('message',this.listener)
-    }
 }
