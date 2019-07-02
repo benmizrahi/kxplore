@@ -2,8 +2,6 @@
 import * as socket from 'socket.io'
 import * as jwt from 'jsonwebtoken'
 import { Injectable, Inject } from '@decorators/di';
-import { IHandler } from '../interfaces/IHandler';
-import { LoggerAction } from '../interfaces/enums';
 import { CommunicationHandler } from '../handlers/communication-handler';
 
 
@@ -16,9 +14,7 @@ export class StreamRouter {
     }   
 
     register = (server) => {
-        const redisAdapter = require('socket.io-redis');
         const io = socket(server);
-        io.adapter(redisAdapter({ host: this.config['redis-config']['host'], port: this.config['redis-config']['port'] }));
         io.use((socket, next) => {
             if (socket.handshake.query && socket.handshake.query.token){
                 jwt.verify(socket.handshake.query.token, this.config.authConfig['SECRET_KEY'], function(err, decoded) {
@@ -40,14 +36,14 @@ export class StreamRouter {
 
            client.on('consumer-connect', async (data) => {
                try {
-                    let job_uuid = await this.communicationHandler.createNewJob(data.env,data.topic)
+                    let job_uuid = await this.communicationHandler.createNewJob(data.env,data.topic,client.decoded,data.isOldest ? 'earliest' : 'latest',)
                     this.communicationHandler.createJobIDSocket(job_uuid,this.publishdata(client,data,io))
                     console.log(`created client id = ${job_uuid}`)   
                     client.emit(`akk-consumer-id-${data.topic}-${data.env}`, {id:job_uuid});
                     
                }
                catch(e){
-                     client.emit(`consumer-id-${data.topic}-${data.env}-error`, e);
+                    client.emit(`consumer-id-${data.topic}-${data.env}-error`, e);
                }
             });
 

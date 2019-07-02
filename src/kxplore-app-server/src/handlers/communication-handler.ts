@@ -14,7 +14,7 @@ export class CommunicationHandler{
     }
 
 
-    createNewJob = async (env,topic):Promise<string> => {
+    createNewJob = async (env,topic,uId,fromOffset):Promise<string> => {
         return  new Promise<string>(async (resolve,reject)=>{
             if(!this.envierments){
                 await this.initEnvs()
@@ -25,6 +25,8 @@ export class CommunicationHandler{
                         type:"Kafka",
                         props:this.envierments[env]
                     },
+                    fromOffset:fromOffset,
+                    userId:uId,
                     params:{
                         topic:topic
                     }

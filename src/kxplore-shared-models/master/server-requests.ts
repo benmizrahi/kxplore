@@ -7,6 +7,8 @@ interface IJobOperations{
 
 export interface IStartJob  {
     env:IEnvironment
+    userId:string
+    fromOffset:string
     params:{ [key: string] : string; }
 }
 

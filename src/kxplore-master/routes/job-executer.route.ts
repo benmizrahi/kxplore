@@ -32,7 +32,7 @@ export class JobExecuterRoute{
       try {
           let payload:IStartJob = req.body 
           const uuid = uuidv1();
-          await this.masterHandler.start({env:payload.env,payload:payload.params,uuid:uuid});
+          await this.masterHandler.start({env:payload.env,payload:payload.params,uuid:uuid,userId:payload.userId,fromOffset:payload.fromOffset});
           let response:IStartJobResponse = {status:true,message:'OK',uuid:uuid};
          res.status(200).send(response)
       }

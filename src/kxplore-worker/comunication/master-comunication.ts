@@ -19,9 +19,9 @@ export class MasterCommunication {
         socket.on('NEW_JOB', async (jobData:IJobInformation) => {
             console.log(`worker_id:${process.env.WORKER_ID}, uuid: ${uuid} retrive job: ${JSON.stringify(jobData)}`);
             let emiter:EventEmitter = await matchPatten(jobData.env).start(jobData);
-            emiter.on('NEW_DATA',(data)=>{
+            emiter.on(`JOB_DATA_${jobData.uuid}`,(data)=>{
                 socket.emit(`JOB_DATA_${jobData.uuid}`,data);
-                console.debug(`worker: ${uuid}, ${process.env.WORKER_ID} is publishing data...`)
+                console.debug(`worker: ${uuid}, ${process.env.WORKER_ID} is publishing data: ${JSON.stringify(new Date())}`)
             })
         });
 

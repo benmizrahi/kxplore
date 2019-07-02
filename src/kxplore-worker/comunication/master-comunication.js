@@ -66,9 +66,9 @@ var MasterCommunication = /** @class */ (function () {
                             return [4 /*yield*/, IConsumer_1.matchPatten(jobData.env).start(jobData)];
                         case 1:
                             emiter = _a.sent();
-                            emiter.on('NEW_DATA', function (data) {
+                            emiter.on("JOB_DATA_" + jobData.uuid, function (data) {
                                 socket.emit("JOB_DATA_" + jobData.uuid, data);
-                                console.debug("worker: " + uuid + ", " + process.env.WORKER_ID + " is publishing data...");
+                                console.debug("worker: " + uuid + ", " + process.env.WORKER_ID + " is publishing data: " + JSON.stringify(new Date()));
                             });
                             return [2 /*return*/];
                     }

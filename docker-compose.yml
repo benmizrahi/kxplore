@@ -62,9 +62,3 @@ services:
       MYSQL_DATABASE: kxplore
       MYSQL_USER: kxplore
       MYSQL_PASSWORD: kxplore
-  redis:
-    image: redis
-    ports:
-      - "6379:6379"
-    volumes:
-       - $PWD/redis:/data

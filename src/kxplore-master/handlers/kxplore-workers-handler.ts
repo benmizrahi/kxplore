@@ -52,7 +52,7 @@ export class KxploreWorkersHandler{
                 this.activeWorkers[worker].activeJobs.splice(index, 1); //removes the job from active jobs!
             }
         });
-        //this.activeJobs[jobInfo.uuid].event.removeAllListeners()
+        this.activeJobs[jobInfo.uuid].event.removeAllListeners()
         delete this.activeJobs[jobInfo.uuid]
     }
 

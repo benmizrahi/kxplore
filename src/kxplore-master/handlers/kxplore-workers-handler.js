@@ -50,7 +50,7 @@ var KxploreWorkersHandler = /** @class */ (function () {
                     _this.activeWorkers[worker].activeJobs.splice(index, 1); //removes the job from active jobs!
                 }
             });
-            //this.activeJobs[jobInfo.uuid].event.removeAllListeners()
+            _this.activeJobs[jobInfo.uuid].event.removeAllListeners();
             delete _this.activeJobs[jobInfo.uuid];
         };
     }

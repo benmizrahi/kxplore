@@ -8,18 +8,17 @@ export class KafkaConsumerHandler extends AbstractConsumer {
     init(jobInfo: IJobInformation,jobObject:{emiter:EventEmitter,privateComp:any}) {
         var options = {
             // connect directly to kafka broker (instantiates a KafkaClient)
-            kafkaHost: '127.0.0.1:9092',
-            groupId: 'test',
-            autoCommit: true,
-            autoCommitIntervalMs: 5000,
-            sessionTimeout: 15000,
-            fetchMaxBytes: 10 * 1024 * 1024, // 10 MB
+            kafkaHost: jobInfo.env.props['kafkaHost'], //'127.0.0.1:9092,127.0.0.1:9093,127.0.0.1:9094',
+            host: jobInfo.env.props['zookeeper'], //'127.0.0.1:2181',
+            groupId: `kxplore_consumer___${jobInfo.userId}`,
+            sessionTimeout: jobInfo.env.props['sessionTimeout'],  //15000,
+            fetchMaxBytes: 1 * 1024 * 1024, // 10 MB
             // An array of partition assignment protocols ordered by preference. 'roundrobin' or 'range' string for
             // built ins (see below to pass in custom assignment protocol)
             protocol: ['roundrobin'],
             // Offsets to use for new groups other options could be 'earliest' or 'none'
             // (none will emit an error if no offsets were saved) equivalent to Java client's auto.offset.reset
-            fromOffset: 'latest',
+            fromOffset: jobInfo.fromOffset, //'latest',
             // how to recover from OutOfRangeOffset error (where save offset is past server retention)
             // accepts same value as fromOffset
             outOfRangeOffset: 'latest'
@@ -28,8 +27,7 @@ export class KafkaConsumerHandler extends AbstractConsumer {
           var consumerGroup = new kafka.ConsumerGroup(options, jobInfo.payload['topic']);
         
           consumerGroup.on('message', function (message) {
-            console.log('Message: ' + message);
-            jobObject.emiter.emit('NEW_DATA',{payload:message})
+            jobObject.emiter.emit(`JOB_DATA_${jobInfo.uuid}`,{payload:message})
           });
         
           consumerGroup.on('error', function onError(error) {
