@@ -37,10 +37,9 @@ export class StreamRouter {
            client.on('consumer-connect', async (data) => {
                try {
                     let job_uuid = await this.communicationHandler.createNewJob(data.env,data.topic,client.decoded,data.isOldest ? 'earliest' : 'latest',)
-                    this.communicationHandler.createJobIDSocket(job_uuid,this.publishdata(client,data,io))
+                    clientActiveJobs[job_uuid] = await this.communicationHandler.createJobIDSocket(job_uuid,this.publishdata(client,data,io))
                     console.log(`created client id = ${job_uuid}`)   
                     client.emit(`akk-consumer-id-${data.topic}-${data.env}`, {id:job_uuid});
-                    
                }
                catch(e){
                     client.emit(`consumer-id-${data.topic}-${data.env}-error`, e);
@@ -49,16 +48,10 @@ export class StreamRouter {
 
            client.on('pause', async (data) => {
              try{
-                // let res = await this.kafkaHandler.handle({action:KafkaAction.pause,payload:{
-                //     env:data.env,
-                //     topic:data.topic,
-                //     userId:client.decoded,
-                //     id:data.id
-                // }})
-                // if(connections[client.id])
-                // connections[client.id] =  connections[client.id].filter(keys =>{
-                //     return keys.topic == data.topic && keys.env == data.env
-                // });
+                if(clientActiveJobs[data.id]){
+                    clientActiveJobs[data.id].emit(`STOP_JOB_${data.id}`)
+                    delete clientActiveJobs[data.id];
+                }
             }
             catch(ex){
                 console.log(`error while filtering userId ${client.id} -- connection dosn't exsits`)
@@ -66,48 +59,24 @@ export class StreamRouter {
            });
            
            client.on('resume',async (data) =>{
-                // let res = await this.kafkaHandler.handle({action:KafkaAction.resume,payload:{
-                //     env:data.env,
-                //     topic:data.topic,
-                //     userId:client.decoded,
-                //     id:data.id
-                // }})      
-                // if(!connections[client.id]){
-                //     connections[client.id] = []
-                // }
-                // connections[client.id].push({env:data.env,topic:data.topic})
            });
 
            client.on('delete',async (data) =>{
-            // connections[client.id] = connections[client.id].filter(keys =>{
-            //     return keys.topic == data.topic && keys.env == data.env
-            // });
-            // let res = await this.kafkaHandler.handle({action:KafkaAction.clear,payload:{
-            //     env:data.env,
-            //     topic:data.topic,
-            //     userId:client.decoded,
-            //     id:data.id
-            // }})  
+               if(clientActiveJobs[data.id]){
+                clientActiveJobs[data.id].emit(`STOP_JOB_${data.id}`)
+                delete clientActiveJobs[data.id];
+               }
            });
 
            client.on('disconnect',async () => {
-                // if(!connections[client.id] || connections[client.id].length == 0) return;
-                // connections[client.id].forEach(async (clientConnections) => {
-                //     let res = await this.kafkaHandler.handle({action:KafkaAction.clear,payload:{
-                //         env:clientConnections.env,
-                //         topic:clientConnections.topic,
-                //         userId:client.decoded
-                //     }}) 
-                //     console.log(`deconnected from" ${clientConnections.topic}-${clientConnections.env}`)
-                // });
-                // connections[client.id] = [] //delete the client
+                Object.keys(clientActiveJobs).map((job_uuid) => {
+                    clientActiveJobs[job_uuid].emit(`STOP_JOB_${job_uuid}`)
+                    delete clientActiveJobs[job_uuid];
+                })
            });
 
-           client.on('discribe-env',async (data)=>{
-            // let res = await this.kafkaHandler.handle({action:KafkaAction.describe,payload:{
-            //     env:data.env
-            // }})
-            // client.emit(`discribe-env-results`, res);
+           client.on('discribe-env',async (data)=>{ 
+               
            })
       });
     };

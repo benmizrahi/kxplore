@@ -44,12 +44,17 @@ export class JobExecuterRoute{
     io.of('/subscribe')
        .on('connection',(socket:SocketIO.Socket)=>{
         const jobId = socket.request._query['uuid'];
-        this.kxploreWorkersHandler.subscribe(jobId).on('NEW_DATA',data => {
+        this.kxploreWorkersHandler.subscribe(jobId).on(`MESSAGES_${jobId}`,data => {
             socket.emit(`MESSAGES_${jobId}`,data)
          })
-          socket.on('disconnect', ()=>{
-            //this.workersHandler.disconnect(socket.handshake.query.param.uuid);
-          });
+
+         socket.on(`STOP_JOB_${jobId}`, ()=>{
+            this.kxploreWorkersHandler.stopJob(jobId);
+         });
+
+        socket.on('disconnect', ()=>{
+          this.kxploreWorkersHandler.stopJob(jobId);
+        });
       })
   }
 }

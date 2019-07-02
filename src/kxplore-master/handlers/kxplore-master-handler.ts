@@ -29,7 +29,7 @@ export class KxploreMasterHandler {
     stop = (payload:IJobInformation):Promise<IActionResult> => {
         return new Promise<IActionResult>((resolve,reject)=>{
             try{
-                this.workersHandler.stopJob(payload)
+                this.workersHandler.stopJob(payload.uuid)
                 resolve({status:true})
             }
             catch(ex){

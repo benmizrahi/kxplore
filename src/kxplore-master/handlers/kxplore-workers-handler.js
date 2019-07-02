@@ -37,21 +37,21 @@ var KxploreWorkersHandler = /** @class */ (function () {
                 _this.activeWorkers[worker].activeJobs.push(jobInfo); //push the job executing in each worker!           
                 _this.activeWorkers[worker].socket.on("JOB_DATA_" + jobInfo.uuid, function (data) {
                     //on data from worker!
-                    console.debug("master retrive data from worker " + worker + "...");
-                    _this.activeJobs[jobInfo.uuid].event.emit('NEW_DATA', data);
+                    if (_this.activeJobs[jobInfo.uuid]) {
+                        _this.activeJobs[jobInfo.uuid].event.emit("MESSAGES_" + jobInfo.uuid, data);
+                    }
                 });
             });
         };
-        this.stopJob = function (jobInfo) {
+        this.stopJob = function (uuid) {
             Object.keys(_this.activeWorkers).map(function (worker) {
-                var index = _this.activeWorkers[worker].activeJobs.indexOf(jobInfo);
-                if (index > -1) {
-                    _this.activeWorkers[worker].socket.emit('DELETE', jobInfo); //tell the worker to stop!
-                    _this.activeWorkers[worker].activeJobs.splice(index, 1); //removes the job from active jobs!
-                }
+                _this.activeWorkers[worker].socket.emit("DELETE_" + uuid); //tell the worker to stop!
+                _this.activeWorkers[worker].activeJobs = _this.activeWorkers[worker].activeJobs.filter(function (job) {
+                    return job.uuid != uuid;
+                }); //removes the job from active jobs!
             });
-            _this.activeJobs[jobInfo.uuid].event.removeAllListeners();
-            delete _this.activeJobs[jobInfo.uuid];
+            _this.activeJobs[uuid].event.removeAllListeners();
+            delete _this.activeJobs[uuid];
         };
     }
     KxploreWorkersHandler = __decorate([

@@ -26,7 +26,7 @@ export abstract class AbstractConsumer implements IConsumer {
                 this.dispose(this.activeJobs[jobInfo.uuid]);
                 delete this.activeJobs[jobInfo.uuid]
                 resolve(true);
-            }
+            }     
             catch(ex){
                 reject(ex);
             }

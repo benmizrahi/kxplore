@@ -38,22 +38,22 @@ export class KxploreWorkersHandler{
             this.activeWorkers[worker].activeJobs.push(jobInfo); //push the job executing in each worker!           
             this.activeWorkers[worker].socket.on(`JOB_DATA_${jobInfo.uuid}`,( data:{messages:Array<any>,uuid:string})=>{
                 //on data from worker!
-                console.debug(`master retrive data from worker ${worker}...`)
-                this.activeJobs[jobInfo.uuid].event.emit('NEW_DATA',data)
+                if(this.activeJobs[jobInfo.uuid]){
+                    this.activeJobs[jobInfo.uuid].event.emit(`MESSAGES_${jobInfo.uuid}`,data)
+                }
             })
         })
     }
 
-    stopJob = (jobInfo:IJobInformation) => {
+    stopJob = (uuid:string) => {
         Object.keys(this.activeWorkers).map(worker=>{
-            let index = this.activeWorkers[worker].activeJobs.indexOf(jobInfo)
-            if(index > -1){
-                this.activeWorkers[worker].socket.emit('DELETE',jobInfo);//tell the worker to stop!
-                this.activeWorkers[worker].activeJobs.splice(index, 1); //removes the job from active jobs!
-            }
+            this.activeWorkers[worker].socket.emit(`DELETE_${uuid}`);//tell the worker to stop!
+            this.activeWorkers[worker].activeJobs = this.activeWorkers[worker].activeJobs.filter((job)=>{
+                return job.uuid != uuid
+            })//removes the job from active jobs!
         });
-        this.activeJobs[jobInfo.uuid].event.removeAllListeners()
-        delete this.activeJobs[jobInfo.uuid]
+        this.activeJobs[uuid].event.removeAllListeners()
+        delete this.activeJobs[uuid]
     }
 
 }

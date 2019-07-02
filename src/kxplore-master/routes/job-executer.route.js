@@ -105,11 +105,14 @@ var JobExecuterRoute = /** @class */ (function () {
             io.of('/subscribe')
                 .on('connection', function (socket) {
                 var jobId = socket.request._query['uuid'];
-                _this.kxploreWorkersHandler.subscribe(jobId).on('NEW_DATA', function (data) {
+                _this.kxploreWorkersHandler.subscribe(jobId).on("MESSAGES_" + jobId, function (data) {
                     socket.emit("MESSAGES_" + jobId, data);
                 });
+                socket.on("STOP_JOB_" + jobId, function () {
+                    _this.kxploreWorkersHandler.stopJob(jobId);
+                });
                 socket.on('disconnect', function () {
-                    //this.workersHandler.disconnect(socket.handshake.query.param.uuid);
+                    _this.kxploreWorkersHandler.stopJob(jobId);
                 });
             });
         };

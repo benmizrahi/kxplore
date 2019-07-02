@@ -43,11 +43,14 @@ export class CommunicationHandler{
     createJobIDSocket = async (uuid,callback) => {
         const socket = io.connect(`http://${process.env.MASTER_HOST}/subscribe?uuid=${uuid}`, { reconnect: true });
         socket.on(`MESSAGES_${uuid}`, (data) => {
-            console.debug(`app get data ...`)
             callback(data.payload);
         });
+        return socket;
     }
 
+    stopJob = async (uuid) =>{
+        superagent.post(`http://${process.env.MASTER_HOST}/api/job/new`)
+    }
 
     private initEnvs = async () => {
          let db = await this.dbHandler.handle({action:DBAction.executeSQL,payload:

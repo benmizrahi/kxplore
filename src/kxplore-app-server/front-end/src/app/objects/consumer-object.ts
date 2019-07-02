@@ -55,6 +55,7 @@ export class ConsumerObject{
     this.socketKafkaService.emit("pause", {topic:this.topic,env: this.env,id:this.consumerid});
     this.streamAlive = false;
   }
+  
   resume(){
     this.socketKafkaService.emit("resume", {topic:this.topic,env: this.env,id:this.consumerid});
     this.streamAlive = true;
