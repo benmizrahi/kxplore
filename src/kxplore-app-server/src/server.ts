@@ -45,9 +45,9 @@ export class Server {
     
     app.get('*', (req: Request, res: any) => {
       if (allowedExt.filter(ext => req.url.indexOf(ext) > 0).length > 0) {
-        res.sendFile(path.resolve(`dist/${req.url}`));
+        res.sendFile(path.resolve(`src/dist/${req.url}`));
       } else {
-        res.sendFile(path.resolve('dist/index.html'));
+        res.sendFile(path.resolve('src/dist/index.html'));
       }
     });
   } 

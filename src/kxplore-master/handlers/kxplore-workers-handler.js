@@ -22,7 +22,11 @@ var KxploreWorkersHandler = /** @class */ (function () {
             _this.activeWorkers[uuid] = worker_state;
         };
         this.subscribe = function (uuid) {
-            return _this.activeJobs[uuid].event;
+            if (_this.activeJobs[uuid])
+                return _this.activeJobs[uuid].event;
+            else {
+                return null;
+            }
         };
         this.disconnect = function (uuid) {
             if (_this.activeWorkers[uuid]) {
@@ -50,8 +54,10 @@ var KxploreWorkersHandler = /** @class */ (function () {
                     return job.uuid != uuid;
                 }); //removes the job from active jobs!
             });
-            _this.activeJobs[uuid].event.removeAllListeners();
-            delete _this.activeJobs[uuid];
+            if (_this.activeJobs[uuid]) {
+                _this.activeJobs[uuid].event.removeAllListeners();
+                delete _this.activeJobs[uuid];
+            }
         };
     }
     KxploreWorkersHandler = __decorate([

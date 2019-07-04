@@ -59,6 +59,7 @@ export class StreamRouter {
            });
            
            client.on('resume',async (data) =>{
+               
            });
 
            client.on('delete',async (data) =>{

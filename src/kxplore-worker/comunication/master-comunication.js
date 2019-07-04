@@ -67,14 +67,13 @@ var MasterCommunication = /** @class */ (function () {
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
-                            this.active[jobData.uuid] = IConsumer_1.matchPatten(jobData.env);
+                            this.active[jobData.uuid] = IConsumer_1.matchPatten(jobData.env, 'MPP');
                             console.log("worker_id:" + process.env.WORKER_ID + ", uuid: " + uuid + " retrive job: " + JSON.stringify(jobData));
                             return [4 /*yield*/, this.active[jobData.uuid].start(jobData)];
                         case 1:
                             emiter = _a.sent();
                             emiter.on("JOB_DATA_" + jobData.uuid, function (data) {
                                 socket.emit("JOB_DATA_" + jobData.uuid, data);
-                                //console.debug(`worker: ${uuid}, ${process.env.WORKER_ID} is publishing data: ${JSON.stringify(new Date())}`)
                             });
                             /*
                                 On delete jon stop the component!
@@ -83,12 +82,14 @@ var MasterCommunication = /** @class */ (function () {
                                 return __generator(this, function (_a) {
                                     switch (_a.label) {
                                         case 0:
+                                            if (!this.active[jobData.uuid]) return [3 /*break*/, 2];
                                             console.log("DELETE event triggred on worker " + process.env.WORKER_ID + " - job: " + jobData.uuid);
                                             return [4 /*yield*/, this.active[jobData.uuid].stop(jobData)];
                                         case 1:
                                             _a.sent();
                                             delete this.active[jobData.uuid];
-                                            return [2 /*return*/];
+                                            _a.label = 2;
+                                        case 2: return [2 /*return*/];
                                     }
                                 });
                             }); });
@@ -100,8 +101,10 @@ var MasterCommunication = /** @class */ (function () {
                 console.error("Worker disconnected workerid:" + uuid + ", error:  " + JSON.stringify(ex));
                 console.info("Start stoping all active jobs, count " + Object.keys(_this.active).length);
                 Object.keys(_this.active).map(function (job) {
-                    _this.active[job].stop();
-                    console.info("job " + job + " stoped!");
+                    if (_this.active[job]) {
+                        _this.active[job].stop();
+                        console.info("job " + job + " stoped!");
+                    }
                 });
             });
         };

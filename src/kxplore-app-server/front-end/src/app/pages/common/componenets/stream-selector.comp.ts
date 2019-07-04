@@ -8,27 +8,40 @@ declare var moment:Function;
     selector: 'stream-selector',
     template: `
          <div class="row" style="width: 100%;">
-            <div class="col-lg-4">
-            <div class="row"> 
-                <div class="col-lg-6 header-text">
-                    <span>Environment: </span>
+            <div class="col-lg-2">
+                <div class="row"> 
+                    <div class="col-lg-6 header-text">
+                        <span>Environment: </span>
+                    </div>
+                    <div class="col-lg-6">
+                    <select class="form-control"  [(ngModel)]="selectedEnv" >
+                        <option *ngFor="let env of getEnvsFromProfile()">{{env}}</option>
+                    </select>
+                    </div>
                 </div>
-                <div class="col-lg-6">
-                <select class="form-control"  [(ngModel)]="selectedEnv" >
-                    <option *ngFor="let env of getEnvsFromProfile()">{{env}}</option>
-                </select>
-                </div>
-            </div>
             </div>
             <div class="col-lg-2">
                 <div class="row"  *ngIf="selectedEnv"> 
                     <div class="col-lg-4 header-text">
                         <span>Topic: </span>
                     </div>
-                    <div class="col-lg-6">
+                    <div class="col-lg-8">
                     <select class="form-control"  [(ngModel)]="selectedTopic">
                         <option *ngFor="let topic of getTopicsInEnv(selectedEnv)">{{topic}}</option>
                     </select>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-2" *ngIf="selectedTopic && selectedEnv">
+                <div class="row" *ngIf="selectedEnv"> 
+                    <div class="col-lg-4 header-text">
+                        <span>Strategy: </span>
+                    </div>
+                    <div class="col-lg-8">
+                        <select class="form-control" [(ngModel)]="selectedStrategy">
+                            <option value="MPP">MPP</option>
+                            <option value="PUSH_FILTER">PUSH_FILTER</option>
+                        </select>
                     </div>
                 </div>
             </div>
@@ -47,7 +60,7 @@ declare var moment:Function;
                 <button *ngIf="selectedTopic && selectedEnv" style="background: #afe0af;" class="btn btn-hero-warning" (click)="startStream()">Pull</button>
             </div>
         </div>
-    `,
+    `,  
     styles:[
         `
         .header-text {
@@ -58,11 +71,13 @@ declare var moment:Function;
     ]
 })
 export class StreamSelector{
+
     selectedDate: string;
     selectedFilter:any = null;
     selectedTopic:string =  null ;
     selectedEnv:string = null;
     selectedDateTime: Date;
+    selectedStrategy:string = null;
     from = "1";
 
     executers:number = 1;

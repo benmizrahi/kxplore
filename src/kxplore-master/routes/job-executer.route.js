@@ -105,15 +105,21 @@ var JobExecuterRoute = /** @class */ (function () {
             io.of('/subscribe')
                 .on('connection', function (socket) {
                 var jobId = socket.request._query['uuid'];
-                _this.kxploreWorkersHandler.subscribe(jobId).on("MESSAGES_" + jobId, function (data) {
-                    socket.emit("MESSAGES_" + jobId, data);
-                });
-                socket.on("STOP_JOB_" + jobId, function () {
-                    _this.kxploreWorkersHandler.stopJob(jobId);
-                });
-                socket.on('disconnect', function () {
-                    _this.kxploreWorkersHandler.stopJob(jobId);
-                });
+                var jobEmiter = _this.kxploreWorkersHandler.subscribe(jobId);
+                if (jobEmiter) {
+                    jobEmiter.on("MESSAGES_" + jobId, function (data) {
+                        socket.emit("MESSAGES_" + jobId, data);
+                    });
+                    socket.on("STOP_JOB_" + jobId, function () {
+                        _this.kxploreWorkersHandler.stopJob(jobId);
+                    });
+                    socket.on('disconnect', function () {
+                        _this.kxploreWorkersHandler.stopJob(jobId);
+                    });
+                }
+                else {
+                    console.error("trying to subscribe to unexisting job_uuid " + jobId);
+                }
             });
         };
     }

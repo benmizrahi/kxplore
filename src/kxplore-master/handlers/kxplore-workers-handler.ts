@@ -21,7 +21,11 @@ export class KxploreWorkersHandler{
     }
 
     subscribe = (uuid:string):EventEmitter => {
-        return this.activeJobs[uuid].event;
+        if(this.activeJobs[uuid])
+            return this.activeJobs[uuid].event;
+        else{
+            return null;
+        }
     }
 
     disconnect = (uuid:string) =>{
@@ -41,7 +45,7 @@ export class KxploreWorkersHandler{
                 if(this.activeJobs[jobInfo.uuid]){
                     this.activeJobs[jobInfo.uuid].event.emit(`MESSAGES_${jobInfo.uuid}`,data)
                 }
-            })
+            })  
         })
     }
 
@@ -52,8 +56,10 @@ export class KxploreWorkersHandler{
                 return job.uuid != uuid
             })//removes the job from active jobs!
         });
-        this.activeJobs[uuid].event.removeAllListeners()
-        delete this.activeJobs[uuid]
+        if(this.activeJobs[uuid]){
+            this.activeJobs[uuid].event.removeAllListeners()
+            delete this.activeJobs[uuid]
+        }
     }
 
 }

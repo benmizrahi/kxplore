@@ -44,17 +44,22 @@ export class JobExecuterRoute{
     io.of('/subscribe')
        .on('connection',(socket:SocketIO.Socket)=>{
         const jobId = socket.request._query['uuid'];
-        this.kxploreWorkersHandler.subscribe(jobId).on(`MESSAGES_${jobId}`,data => {
-            socket.emit(`MESSAGES_${jobId}`,data)
-         })
+        const jobEmiter = this.kxploreWorkersHandler.subscribe(jobId)
+        if(jobEmiter){
+          jobEmiter.on(`MESSAGES_${jobId}`,data => {
+              socket.emit(`MESSAGES_${jobId}`,data)
+          })
 
-         socket.on(`STOP_JOB_${jobId}`, ()=>{
+          socket.on(`STOP_JOB_${jobId}`, ()=>{
+              this.kxploreWorkersHandler.stopJob(jobId);
+          });
+
+          socket.on('disconnect', ()=>{
             this.kxploreWorkersHandler.stopJob(jobId);
-         });
-
-        socket.on('disconnect', ()=>{
-          this.kxploreWorkersHandler.stopJob(jobId);
-        });
+          });
+        }else{
+          console.error(`trying to subscribe to unexisting job_uuid ${jobId}`);
+        }
       })
   }
 }

@@ -257,7 +257,6 @@
   text-align: right;
   height: 26px;
   right: 2%;
-  padding-left: 35%;
   padding-top: 1%;
 }
 
@@ -592,4 +591,9 @@ envierments-edit > * > * > * > .ngx-lighttable > * .ngx-lighttable__header-cell:
     80% { left: 50%;}
     95% {left: 120%;}
     to {left: 100%;}
+}
+
+.nb-theme-default nb-tabset .tabset .tab a::before{
+  background: #aed2bd !important;
+  background-image: linear-gradient(to right, #e0e0e0, #45a56b) !important;
 }

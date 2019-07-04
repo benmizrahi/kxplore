@@ -1,8 +1,12 @@
 import { EventEmitter } from "events";
 import { IConsumer } from "./consumers/IConsumer";
 import { IJobInformation } from "../../kxplore-shared-models/job-details";
+import { AbstractStrategy } from "../consumer-strategy/abstract-strategy";
 
 export abstract class AbstractConsumer implements IConsumer {
+
+    constructor(protected readonly strategy:AbstractStrategy) {}
+
 
     private readonly activeJobs:{ [uuid: string] : {emiter:EventEmitter,privateComp:any } } = {}
     

@@ -1,11 +1,12 @@
 import {Component, Input, ChangeDetectorRef, Output, EventEmitter} from '@angular/core';
-import { QueryBuilderConfig, QueryBuilderClassNames } from 'angular2-query-builder';
+import { QueryBuilderConfig } from 'angular2-query-builder';
 
 @Component({
   selector: 'query-builder-stream',
   template: `
-      <query-builder [(ngModel)]='query' [allowRuleset]="false" (ngModelChange)="onChange()" [config]='config'></query-builder>
-  `,
+  <query-builder [(ngModel)]='query' [allowRuleset]="false" (ngModelChange)="onChange()" [config]='config'></query-builder>
+
+     `,
   styles:[`
    
   `]
@@ -13,9 +14,9 @@ import { QueryBuilderConfig, QueryBuilderClassNames } from 'angular2-query-build
 
 export class QueryBuilderStream {
 
-    
+     config: QueryBuilderConfig = { fields:{
 
-    @Input() config: QueryBuilderConfig;
+      }};
     
     @Output() filterChanged:EventEmitter<string> = new EventEmitter();
 

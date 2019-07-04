@@ -24,9 +24,6 @@ declare var Papa:any
                 <nb-card style="margin-bottom:0">
                   <nb-card-header>
                   <div class="row">
-                    <div class="col-lg-9">    
-                        <query-builder-stream (filterChanged)="applyFilter(connection,$event)" [config]="streamConsumerService.connectionsList[connection].avalibleColumns"></query-builder-stream>
-                    </div>
                     <div class="col-lg-3">
                       <div class="stream-controller">
                           <i *ngIf=!isStreamAlive(connection) (click)="resumeStreaming(connection)" class="fa fa-play fa-x3" style="color: green;"></i>
@@ -50,15 +47,11 @@ declare var Papa:any
                           [headerHeight]="50"
                           [scrollbarV]="true"
                           [scrollbarH]="false"
+                          [columns]="columns"
                           (select)="onSelect(connection,$event)"
                           [selectionType]="'single'"
                           (tableContextmenu)="onTableContextMenu($event)"
                           [rows]="getRowsByConnection(connection)">                            
-                              <ngx-datatable-column [sortable]="true" [draggable]="true" *ngFor="let column of columns" name="{{column}}" prop="message">
-                                <ng-template let-value="value" ngx-datatable-cell-template>
-                                    <strong>{{getCellValue(column,value)}}</strong>
-                                </ng-template>
-                              </ngx-datatable-column>
                           </ngx-datatable>
                     </div>
                     <div  class="col-lg-4 header-clean" *ngIf="streamConsumerService.connectionsList[connection].selectedJSON">
@@ -147,7 +140,10 @@ export class KafkaConsumer {
     this.userProfileService.reloadUserProfile();
   }
 
-  columns = this.userProfileService.userColumns
+  columns = [
+    { prop: 'key' },
+    { name: 'value' }
+  ];//this.userProfileService.userColumns
   
   @ViewChild('dialog')
   dialog:TemplateRef<any>
@@ -181,7 +177,7 @@ export class KafkaConsumer {
         return value;
       }
     }else{
-      return JSON.parse(value)[column];
+      //return JSON.parse(value)[column];
     }
   }
 

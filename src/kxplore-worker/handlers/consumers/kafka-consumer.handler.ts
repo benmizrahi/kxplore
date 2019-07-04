@@ -1,8 +1,19 @@
 import { IJobInformation } from "../../../kxplore-shared-models/job-details";
 var kafka = require('kafka-node');
 import { EventEmitter } from "events";
-import { AbstractConsumer } from "../abstract-consumer.hanler";
+import { AbstractConsumer } from "../abstract-consumer.handler";
 import { queue } from 'async';
+import { IConsumerMessage } from "./IConsumer";
+
+export interface KafkaMessage {
+    partition:number
+    timestamp:Date
+    topic:string
+    value:string
+    key:any
+    offset:number
+    highWaterOffset:number
+}
 
 export class KafkaConsumerHandler extends AbstractConsumer {
 
@@ -29,16 +40,15 @@ export class KafkaConsumerHandler extends AbstractConsumer {
         
         const consumerGroup = new kafka.ConsumerGroup(options, jobInfo.payload['topic']);
      
-        const q = queue((payload: any, cb: any)=> {
+        const q = queue((payload: KafkaMessage, cb: any)=> {
             setImmediate(() => {
-                jobObject.emiter.emit(`JOB_DATA_${jobInfo.uuid}`,{payload:payload})
+                this.strategy.maniplute({data:payload.value,recivedTimestamp:new Date(),groupbykey:payload.partition})
                 cb()
             });
         }, jobInfo.env.props['threads']);
 
         consumerGroup.on('message', (messageWrapper) => {
-            const message: any = messageWrapper.value;
-            q.push(message);
+            q.push(messageWrapper);
             consumerGroup.pause();
         });
     
@@ -59,6 +69,11 @@ export class KafkaConsumerHandler extends AbstractConsumer {
             consumerGroup.resume();
         };
         jobObject.privateComp = consumerGroup;
+
+        this.strategy.outputEmitter.on('INTERVAL_DATA_EXPORT',(payload)=>{
+            jobObject.emiter.emit(`JOB_DATA_${jobInfo.uuid}`,payload)  
+        })
+
         console.info(`Listening for the topic: ${jobInfo.payload['topic']} messages,worker id: ${process.env.WORKER_ID}`);;
     }
 

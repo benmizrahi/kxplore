@@ -11,7 +11,7 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 var kafka = require('kafka-node');
-var abstract_consumer_hanler_1 = require("../abstract-consumer.hanler");
+var abstract_consumer_handler_1 = require("../abstract-consumer.handler");
 var async_1 = require("async");
 var KafkaConsumerHandler = /** @class */ (function (_super) {
     __extends(KafkaConsumerHandler, _super);
@@ -40,13 +40,12 @@ var KafkaConsumerHandler = /** @class */ (function (_super) {
         var consumerGroup = new kafka.ConsumerGroup(options, jobInfo.payload['topic']);
         var q = async_1.queue(function (payload, cb) {
             setImmediate(function () {
-                jobObject.emiter.emit("JOB_DATA_" + jobInfo.uuid, { payload: payload });
+                _this.strategy.maniplute({ data: payload.value, recivedTimestamp: new Date(), groupbykey: payload.partition });
                 cb();
             });
         }, jobInfo.env.props['threads']);
         consumerGroup.on('message', function (messageWrapper) {
-            var message = messageWrapper.value;
-            q.push(message);
+            q.push(messageWrapper);
             consumerGroup.pause();
         });
         consumerGroup.on('error', function (err) {
@@ -63,6 +62,9 @@ var KafkaConsumerHandler = /** @class */ (function (_super) {
             consumerGroup.resume();
         };
         jobObject.privateComp = consumerGroup;
+        this.strategy.outputEmitter.on('INTERVAL_DATA_EXPORT', function (payload) {
+            jobObject.emiter.emit("JOB_DATA_" + jobInfo.uuid, payload);
+        });
         console.info("Listening for the topic: " + jobInfo.payload['topic'] + " messages,worker id: " + process.env.WORKER_ID);
         ;
     };
@@ -76,6 +78,6 @@ var KafkaConsumerHandler = /** @class */ (function (_super) {
         });
     };
     return KafkaConsumerHandler;
-}(abstract_consumer_hanler_1.AbstractConsumer));
+}(abstract_consumer_handler_1.AbstractConsumer));
 exports.KafkaConsumerHandler = KafkaConsumerHandler;
 //# sourceMappingURL=kafka-consumer.handler.js.map

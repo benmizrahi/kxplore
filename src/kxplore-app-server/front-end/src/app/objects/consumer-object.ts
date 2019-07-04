@@ -66,51 +66,29 @@ export class ConsumerObject{
     this.streamAlive = false;
   }
 
-  applyFilter = (messages:Array<any>,filter:string) => {
-    return  messages.map(x=> {
-            let results = query([x.message], filter);
-            if(results.length == 0) return null;
-            else return { message:results[0],offset:x.offset,partition:x.partition}
-    }).filter(x => x !== null);
-  }
+  // applyFilter = (messages:Array<any>,filter:string) => {
+  //   return  messages.map(x=> {
+  //           let results = query([x.message], filter);
+  //           if(results.length == 0) return null;
+  //           else return { message:results[0],offset:x.offset,partition:x.partition}
+  //   }).filter(x => x !== null);
+  // }
 
   private _data:any[] = [];
   viewSource:any[] = []
-
-  avalibleColumns:QueryBuilderConfig = {
-    fields:{
-
-    }
-  }
 
   set data(objects:any[]){
     
     this._data.length >= environment.maxMessage ? this.shiftItems(this._data,objects.length) : true
     this._data = this._data.concat(objects) //save all data for filtering
     if(this._filter){
-      let data_filterd = this.applyFilter(this._data,this._filter)
-      .map(y=>{
-        this.updateAvalibleColumns(y.message)
-        return y;
-      }).map(x => {
-        return {offset: x.offset,
-          partition : x.partition,
-          message: JSON.stringify(x.message) 
-        }
-      });
+      let data_filterd = this._data
       this.viewSource = this.viewSource.concat(data_filterd)
       this.viewSource.length >= environment.maxMessage ? this.shiftItems(this.viewSource,data_filterd.length) : true
     }else{
       this.viewSource = this._data.map(y=>{
-        this.updateAvalibleColumns(y.message)
         return y;
-      }).map(x => { 
-        return {
-          offset: x.offset,
-          partition : x.partition,
-          message: JSON.stringify(x.message) 
-        }
-      });
+      })
     }
     this.counter = this.viewSource.length
   }
@@ -126,14 +104,6 @@ export class ConsumerObject{
       return array
   }
 
-  updateAvalibleColumns = (object) =>{
-    for (let column in object) {
-      if(!this.avalibleColumns.fields[column]){
-        this.avalibleColumns.fields[column] = {name: column, type: typeof column}
-      }
-    }
-    this.avalibleColumns = Object.assign({},this.avalibleColumns)
-  }
  
   get data() { 
     return this._data;
@@ -150,16 +120,16 @@ export class ConsumerObject{
   }
 
   updateSourceStream = async () => {
-    if(this._filter){
-      this.viewSource = this.applyFilter(this._data,this._filter).map(x => {
-            return {offset: x.offset,
-            partition : x.partition,
-            message: JSON.stringify(x.message) 
-          }
-        })
-    }else
+   // if(this._filter){
+    //   this.viewSource = this.applyFilter(this._data,this._filter).map(x => {
+    //         return {offset: x.offset,
+    //         partition : x.partition,
+    //         message: JSON.stringify(x.message) 
+    //       }
+    //     })
+    // }else
       this.viewSource = this._data.map(element=> {
         return {partition:element.partition,offset:element.offset,message:JSON.stringify(element.message)}
-      });
-  }
-}
+     });
+      }
+    }
