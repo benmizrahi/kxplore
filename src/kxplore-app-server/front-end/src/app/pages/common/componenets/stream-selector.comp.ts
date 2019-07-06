@@ -98,7 +98,10 @@ export class StreamSelector{
             (this.from == "2" ? true : false),
           (res,object:ConsumerObject)=>{
             if(res.topic != object.topic || res.env != object.env) return ;
-            object.data = res.messages
+            object.data = res.messages.payload
+            this.streamConsumerService.connectionsList[object.topic  + "|" + object.env].selectedColumns = res.messages.metaColumns.map((col)=>{
+                return { prop: col.columnid }
+            })
           });
       };
 
@@ -111,4 +114,4 @@ export class StreamSelector{
     return this.userProfileService.userProfile.envs[env]
   }
 
-    }
+}

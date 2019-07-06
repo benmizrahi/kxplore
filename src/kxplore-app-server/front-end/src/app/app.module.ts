@@ -25,16 +25,21 @@ import {AuthenticationService} from './services/authentication.service';
 import {SocketKafkaService} from "./services/socket-kafka.service";
 import {UserProfileService} from "./services/user-profile.service";
 import {LoadingModule} from "ngx-loading";
-import { AceEditorModule } from 'ng2-ace-editor';
 import { NgbModule, NgbButtonsModule } from '@ng-bootstrap/ng-bootstrap';
 import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
 import { MomentModule } from 'ngx-moment';
 import { Ng2SmartTableModule} from 'ng2-smart-table';
-import { FilterEditor } from './pages/filter-editor.comp';
 import { AngularFontAwesomeModule } from 'angular-font-awesome';
 import { EditModule } from './pages/edit/edit.module';
 import { AppCommonModule } from './pages/common/app-common.module';
+import { NGX_MONACO_EDITOR_CONFIG, MonacoEditorModule, NgxMonacoEditorConfig } from "ngx-monaco-editor";
 
+const monacoConfig: NgxMonacoEditorConfig = {
+    baseUrl:"assets/",
+    defaultOptions: { scrollBeyondLastLine: false }, // pass default options to be used
+    onMonacoLoad: () => { console.log((<any>window).monaco); } // here monaco object will be available as window.monaco use this function to extend monaco editor functionalities.
+  };
+  
 const routes: Routes = [
   {
     path: '',
@@ -52,9 +57,9 @@ const routes: Routes = [
     AppComponent,
     KafkaConsumer,
     UserAreaComp,
-    LoginPageComp,
-    FilterEditor
+    LoginPageComp
   ],
+
   imports: [
     CommonModule,
     BrowserAnimationsModule,
@@ -75,7 +80,6 @@ const routes: Routes = [
     HttpClientModule,
     LoadingModule,
     NgxJsonViewerModule,
-    AceEditorModule,
     NgbModule.forRoot(),
     NbContextMenuModule, 
     MomentModule,
@@ -84,8 +88,8 @@ const routes: Routes = [
     NbPopoverModule,
     AngularFontAwesomeModule,
     AppCommonModule,
-    EditModule
-  ],
+    EditModule,
+    MonacoEditorModule.forRoot()  ],
   providers: [
     NbSidebarService,
     
@@ -95,7 +99,8 @@ const routes: Routes = [
     AuthGuard,
     SocketKafkaService,
     UserProfileService,
-    { provide: APP_INITIALIZER, useFactory: jokesProviderFactory, deps: [UserProfileService], multi: true }
+    { provide: APP_INITIALIZER, useFactory: jokesProviderFactory, deps: [UserProfileService], multi: true },
+    { provide: NGX_MONACO_EDITOR_CONFIG, useValue: monacoConfig }
   ],
   bootstrap: [AppComponent],
   entryComponents:[]

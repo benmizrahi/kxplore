@@ -19,7 +19,7 @@ export interface IConsumerMessage {
 }
 
 export const strategyFactory = (type) => {
-    return new PushFilterWorker(5,"select * from ? where counter > 1")
+    return new PushFilterWorker(5,"select data,counter from ? where counter > 0.7")
 }
 
 export function matchPatten(env:IEnvironment,strategy:string):IConsumer{

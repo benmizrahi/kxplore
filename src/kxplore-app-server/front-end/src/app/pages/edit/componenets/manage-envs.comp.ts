@@ -25,7 +25,6 @@ import { EnvManagmentService } from "../services/env-manage.service";
                                 <label >Select Topic</label>
                                 <input class="form-control"  [(ngModel)]="data.envName" placeholder="Envierment Name" type="text">
                             </div>
-                            <ace-editor (textChanged)="onChange(data,$event)" [text]="getPropsJSON(data.props)" mode="json" [theme]="'eclipse'" #editor style="height:300px;"></ace-editor>
                             <div class="row" *ngIf="pasringError">
                                 <div *ngIf="pasringError" class="alert alert-danger" role="alert"><strong >Oh snap!</strong> JSON is not valid </div>
                             </div>
@@ -33,6 +32,9 @@ import { EnvManagmentService } from "../services/env-manage.service";
                  </edit-panel> `,
 })
 export class ManageEnvs {
+    
+    editorOptions = {theme: 'vs', language: 'javascript'};
+    code: string= 'SELECT * FROM ?';
     
     emptyTemplate:Envierment;
     pasringError:string = null;

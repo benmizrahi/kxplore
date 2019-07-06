@@ -13,7 +13,6 @@ import { PremissionManage } from "./services/premissions-manage.service";
 import { CommonModule } from "@angular/common";
 import { BrowserModule } from "@angular/platform-browser";
 import { FormsModule } from "@angular/forms";
-import { AceEditorModule } from "ng2-ace-editor";
 import { NbCardModule, NbCheckboxModule } from "@nebular/theme";
 import { NgXLightTableModule } from "ngx-lighttable";
 import { NgxJsonViewerModule } from "ngx-json-viewer";
@@ -36,7 +35,6 @@ const routes: Routes = [
         CommonModule,
         BrowserModule,
         FormsModule,
-        AceEditorModule,    
         NbCardModule,
         NbCheckboxModule,
         NgXLightTableModule,

@@ -2,16 +2,20 @@ import {Component, ChangeDetectorRef, ViewChild, TemplateRef} from '@angular/cor
 import {StreamConsumerService} from "../services/stream-consumer.service";
 import { UserProfileService } from '../services/user-profile.service';
 import { NbDialogService } from '@nebular/theme';
-import { QueryBuilderConfig } from 'angular2-query-builder';
 declare var Papa:any
 
 @Component({
   selector: 'kafka-table-obj',
   template: `
   <nb-layout>
-    <nb-layout-header style="padding: 0 0rem 0.75rem !important;">
-        <stream-selector  style="width: 100%;"></stream-selector>
-    </nb-layout-header>
+      <nb-layout-header>
+          <stream-selector  style="width: 100%;"></stream-selector>
+      </nb-layout-header>
+      <nb-layout-header style="padding: 0 0rem 0.75rem !important;">
+      <div class="col-lg-12" style="height: 2.75rem;    overflow: hidden;">
+          <ngx-monaco-editor [options]="editorOptions" [(ngModel)]="code"></ngx-monaco-editor>
+        </div>
+      </nb-layout-header>
   <nb-layout-column style="position: relative;">
     <consumer-wait *ngIf="getKeys(streamConsumerService.connectionsList).length == 0" [title]="'No Active Connections'"></consumer-wait>
     <nb-tabset (changeTab)="tabChanged($event)">
@@ -31,7 +35,7 @@ declare var Papa:any
                           <i class="fa fa-file-o"  (click)="downloadObjectAsJson(connection)"></i>
                           <i class="fa fa-file-excel-o"  (click)="downloadObjectAsCSV(connection)"></i>
                           <i class="fa fa-close fa-x3" style="color: #232223;" (click)="closeStream(connection)"></i>
-                          <div> {{streamConsumerService.connectionsList[connection].counter }} Items</div>
+                          <div> {{streamConsumerService.connectionsList[connection].counter }} Items of {{streamConsumerService.connectionsList[connection].consumed }} consumed </div>
                       </div>
                     </div>
                 </div>
@@ -47,7 +51,7 @@ declare var Papa:any
                           [headerHeight]="50"
                           [scrollbarV]="true"
                           [scrollbarH]="false"
-                          [columns]="columns"
+                          [columns]="getColumns(connection)"
                           (select)="onSelect(connection,$event)"
                           [selectionType]="'single'"
                           (tableContextmenu)="onTableContextMenu($event)"
@@ -130,6 +134,12 @@ declare var Papa:any
 
 export class KafkaConsumer {
 
+  editorOptions = {theme: 'vs', language: 'sql',lineNumbers:true,automaticLayout: true,minimap: {
+		enabled: false
+  }};
+  
+  code: string= 'select * from kafka.events';
+
 
   streamConsumerService:StreamConsumerService;
   
@@ -140,10 +150,6 @@ export class KafkaConsumer {
     this.userProfileService.reloadUserProfile();
   }
 
-  columns = [
-    { prop: 'key' },
-    { name: 'value' }
-  ];//this.userProfileService.userColumns
   
   @ViewChild('dialog')
   dialog:TemplateRef<any>
@@ -156,21 +162,8 @@ export class KafkaConsumer {
     }
   }
 
-  removeColumn = (column,ref) =>{
-   let index = this.columns.indexOf(column)
-   this.columns.splice(index, 1);
-   this.userProfileService.saveLocalColumns()
-   ref.close()
-  }
-
-  pushColumn = (column,ref) => {
-    this.columns.push(column);
-    ref.close()
-    this.userProfileService.saveLocalColumns()
-  }
-
   getCellValue = (column,value:string) => {
-    if(column == "ALL"){
+    if(column == "*"){
       if(value.length > 200){
         return value.substring(0,200) + '...'
       }else{
@@ -244,6 +237,10 @@ export class KafkaConsumer {
 
   clearSelected = (connection) => {
     this.streamConsumerService.connectionsList[connection].selectedJSON  =null;
+  }
+
+  getColumns = (connection) => {
+   return  this.streamConsumerService.connectionsList[connection].selectedColumns
   }
 
   downloadObjectAsJson = (connection) => {

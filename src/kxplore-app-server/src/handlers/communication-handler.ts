@@ -43,7 +43,7 @@ export class CommunicationHandler{
     createJobIDSocket = async (uuid,callback) => {
         const socket = io.connect(`http://${process.env.MASTER_HOST}/subscribe?uuid=${uuid}`, { reconnect: true });
         socket.on(`MESSAGES_${uuid}`, (data) => {
-            callback(data.payload);
+            callback(data);
         });
         return socket;
     }

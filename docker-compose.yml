@@ -51,6 +51,18 @@ services:
       KAFKA_LOG4J_LOGGERS: "kafka.controller=INFO,kafka.producer.async.DefaultEventHandler=INFO,state.change.logger=INFO"
     depends_on:
       - zoo1
+  pubsub:
+    image: adilsoncarvalho/gcloud-pubsub-emulator
+    environment:
+      - PUBSUB_EMULATOR_HOST="emulator:8085"
+    ports:
+      - "8085:8085"
+  kinesis:
+    image: vsouza/kinesis-local:latest
+    command: --port 4567
+    restart: always
+    ports:
+      - 4567:4567
   db:
     image: mysql:5.7
     ports:

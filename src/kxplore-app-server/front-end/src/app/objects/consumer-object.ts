@@ -2,7 +2,6 @@ import {SocketKafkaService} from "../services/socket-kafka.service";
 import * as query from './sqlTokinazer/index';
 import { environment } from "../../environments/environment";
 import { UserProfileService } from "../services/user-profile.service";
-import { QueryBuilderConfig } from "angular2-query-builder";
 declare var moment:Function;
 
 export class ConsumerObject{
@@ -12,8 +11,11 @@ export class ConsumerObject{
   public streamAlive:boolean = false;
   public events:Array<any> = []
   public counter:number = 0
+  public consumed:number = 0
   private consumerid;
   public selectedJSON = null;
+
+  public selectedColumns = []
 
   constructor(
               private readonly userProfileService:UserProfileService,
@@ -91,6 +93,7 @@ export class ConsumerObject{
       })
     }
     this.counter = this.viewSource.length
+    this.consumed = this.consumed + objects.length;
   }
 
 
