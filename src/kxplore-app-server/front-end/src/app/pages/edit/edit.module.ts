@@ -16,6 +16,7 @@ import { FormsModule } from "@angular/forms";
 import { NbCardModule, NbCheckboxModule } from "@nebular/theme";
 import { NgXLightTableModule } from "ngx-lighttable";
 import { NgxJsonViewerModule } from "ngx-json-viewer";
+import { NGX_MONACO_EDITOR_CONFIG, MonacoEditorModule, NgxMonacoEditorConfig } from "ngx-monaco-editor";
 
 const routes: Routes = [
     { path: 'topics', component: ManageTopics  ,canActivate: [AuthGuard] },
@@ -23,6 +24,14 @@ const routes: Routes = [
     { path: 'environments', component: ManageEnvs,canActivate: [AuthGuard] },
     { path: 'userPremissions', component: ManagePremission,canActivate: [AuthGuard] }
   ];
+
+
+  const monacoConfig: NgxMonacoEditorConfig = {
+    baseUrl:"assets/",
+    defaultOptions: { scrollBeyondLastLine: false }, // pass default options to be used
+    onMonacoLoad: () => { console.log((<any>window).monaco); } // here monaco object will be available as window.monaco use this function to extend monaco editor functionalities.
+  };
+
 
 @NgModule({
     declarations: [
@@ -40,9 +49,10 @@ const routes: Routes = [
         NgXLightTableModule,
         NgxJsonViewerModule,
         RouterModule.forRoot(routes,{}),
-        AppCommonModule
+        AppCommonModule,
+        MonacoEditorModule.forRoot() 
     ],
-    providers:[EnvManagmentService,PremissionManage,TopicManageService,UsersManageService],
+    providers:[EnvManagmentService,PremissionManage,TopicManageService,UsersManageService,{ provide: NGX_MONACO_EDITOR_CONFIG, useValue: monacoConfig }],
     exports:[  
         ManageEnvs,
         ManageTopics,

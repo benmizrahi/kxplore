@@ -1,7 +1,7 @@
 import { Injectable } from "@angular/core";
 import { HttpHeaders, HttpClient } from "@angular/common/http";
 import { environment } from "../../../../environments/environment";
-import { Envierment } from "../../../objects/envierment";
+import { Environment } from "../../../objects/environment";
 import { IObjectService } from "../../../objects/IObjectService";
 import { Topic } from "../../../objects/topic";
 import { EnvManagmentService } from "./env-manage.service";

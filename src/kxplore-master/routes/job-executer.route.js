@@ -88,7 +88,7 @@ var JobExecuterRoute = /** @class */ (function () {
                             _a.trys.push([0, 2, , 3]);
                             payload = req.body;
                             uuid = uuidv1();
-                            return [4 /*yield*/, this.masterHandler.start({ env: payload.env, payload: payload.params, uuid: uuid, userId: payload.userId, fromOffset: payload.fromOffset })];
+                            return [4 /*yield*/, this.masterHandler.start({ env: payload.env, connectionObject: payload.connectionObject, job_uuid: uuid })];
                         case 1:
                             _a.sent();
                             response = { status: true, message: 'OK', uuid: uuid };

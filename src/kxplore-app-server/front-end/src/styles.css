@@ -12,9 +12,8 @@
 .load-wrapp {
   float: left;
   width: 100%;
-  height: 94%;
-  margin: 0 10px 10px 0;
-  padding: 20%;
+  height: 90%;
+  padding: 10%;
   text-align: center;
   border-radius: 35px;
 }
@@ -596,4 +595,8 @@ envierments-edit > * > * > * > .ngx-lighttable > * .ngx-lighttable__header-cell:
 .nb-theme-default nb-tabset .tabset .tab a::before{
   background: #aed2bd !important;
   background-image: linear-gradient(to right, #e0e0e0, #45a56b) !important;
+}
+
+.nb-theme-default nb-layout .layout .header-layout nav{
+  height: 7.75rem;
 }

@@ -1,4 +1,5 @@
 import {IEnvironment} from '../envierment'
+import {ConnectionObject} from '../connection-object'
 
 interface IJobOperations{
     jobId:number
@@ -6,15 +7,14 @@ interface IJobOperations{
 }
 
 export interface IStartJob  {
-    env:IEnvironment
-    userId:string
-    fromOffset:string
-    params:{ [key: string] : string; }
+    env:IEnvironment;
+    connectionObject:ConnectionObject
 }
 
 
 export interface IDescribeRequest {
     env:IEnvironment
+    connectionObject:ConnectionObject
 }
 
 //subscribe to active job

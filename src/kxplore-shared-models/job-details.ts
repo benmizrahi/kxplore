@@ -1,9 +1,8 @@
 import { IEnvironment } from "./envierment";
+import {ConnectionObject} from './connection-object'
 
 export interface IJobInformation {
-    uuid:string;
-    payload:any;
-    userId:string;
-    fromOffset:string;
+    connectionObject:ConnectionObject
     env:IEnvironment;
+    job_uuid:string;
 }

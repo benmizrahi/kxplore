@@ -3,7 +3,10 @@ import * as socket from 'socket.io'
 import * as jwt from 'jsonwebtoken'
 import { Injectable, Inject } from '@decorators/di';
 import { CommunicationHandler } from '../handlers/communication-handler';
-
+import {ConnectionObject } from '../../../kxplore-shared-models/connection-object'
+/*
+    Duplicated from the client side - this object is the main object transfered from client to server!
+*/
 
 @Injectable()
 export class StreamRouter {
@@ -34,23 +37,27 @@ export class StreamRouter {
             
          const clientActiveJobs = {};
 
-           client.on('consumer-connect', async (data) => {
+           client.on('consumer-connect', async (params:{connectionObject:ConnectionObject}) => {
+               const data = Object.assign(new ConnectionObject(),params.connectionObject) ;
+               data.uId =client.decoded;
                try {
-                    let job_uuid = await this.communicationHandler.createNewJob(data.env,data.topic,client.decoded,data.isOldest ? 'earliest' : 'latest',)
-                    clientActiveJobs[job_uuid] = await this.communicationHandler.createJobIDSocket(job_uuid,this.publishdata(client,data,io))
+                    let job_uuid = await this.communicationHandler.createNewJob(data)
+                    clientActiveJobs[job_uuid] = await this.communicationHandler.createJobIDSocket(job_uuid,this.publishdata(io,data))
                     console.log(`created client id = ${job_uuid}`)   
-                    client.emit(`akk-consumer-id-${data.topic}-${data.env}`, {id:job_uuid});
+                    client.emit(`akk-consumer-id-${data.getStreamingKey()}`, {id:job_uuid});
                }
                catch(e){
-                    client.emit(`consumer-id-${data.topic}-${data.env}-error`, e);
+                    client.emit(`consumer-id-${data.getStreamingKey()}-error`, e);
                }
             });
 
-           client.on('pause', async (data) => {
+           client.on('pause', async (params:{connectionObject:ConnectionObject}) => {
+            const data = Object.assign(new ConnectionObject(),params.connectionObject) ;
+
              try{
-                if(clientActiveJobs[data.id]){
-                    clientActiveJobs[data.id].emit(`STOP_JOB_${data.id}`)
-                    delete clientActiveJobs[data.id];
+                if(clientActiveJobs[data.job_id]){
+                    clientActiveJobs[data.job_id].emit(`STOP_JOB_${data.job_id}`)
+                    delete clientActiveJobs[data.job_id];
                 }
             }
             catch(ex){
@@ -62,10 +69,11 @@ export class StreamRouter {
                
            });
 
-           client.on('delete',async (data) =>{
-               if(clientActiveJobs[data.id]){
-                clientActiveJobs[data.id].emit(`STOP_JOB_${data.id}`)
-                delete clientActiveJobs[data.id];
+           client.on('delete',async (params:{connectionObject:ConnectionObject}) => {
+            const data = Object.assign(new ConnectionObject(),params.connectionObject) ;
+               if(clientActiveJobs[data.job_id]){
+                clientActiveJobs[data.job_id].emit(`STOP_JOB_${data.job_id}`)
+                delete clientActiveJobs[data.job_id];
                }
            });
 
@@ -76,15 +84,16 @@ export class StreamRouter {
                 })
            });
 
-           client.on('discribe-env',async (data)=>{ 
+           client.on('discribe-env',(params:{connectionObject:ConnectionObject}) => {
+            const data = Object.assign(new ConnectionObject(),params.connectionObject) ;
                
            })
       });
     };
 
-    private publishdata = (client,data,io) => {
+    private publishdata = (io,connectionObject:ConnectionObject) => {
          return (message) => {
-            io.emit(`messages-list-${data.topic}-${data.env}`, {topic:data.topic,env:data.env,messages:message});
+            io.emit(`messages-list-${connectionObject.getStreamingKey()}`, {topic:connectionObject.topic,connectionObject:connectionObject.env,messages:message});
         }
     }
 }

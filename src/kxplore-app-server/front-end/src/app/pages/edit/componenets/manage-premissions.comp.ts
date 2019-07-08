@@ -6,7 +6,7 @@ import { EnvManagmentService } from "../services/env-manage.service";
 import { TopicManageService } from "../services/topic-manage.service";
 import { User } from "../../../objects/user";
 import { AbstractExtendedWebDriver } from "protractor/built/browser";
-import { Envierment } from "../../../objects/envierment";
+import { Environment } from "../../../objects/environment";
 import { Topic } from "../../../objects/topic";
 import { Premissions } from "../../../objects/premissions";
 
@@ -59,7 +59,7 @@ import { Premissions } from "../../../objects/premissions";
 export class ManagePremission {
 
     usersList:Array<User>
-    envList:Array<Envierment>
+    envList:Array<Environment>
     topicsList:Array<Topic>
     emptyTemplate:Premissions;
 

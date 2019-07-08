@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import {SocketKafkaService} from "./socket-kafka.service";
 import {ConsumerObject} from "../objects/consumer-object";
 import { UserProfileService } from './user-profile.service';
+import { ConnectionObject } from '../objects/connection-object';
 declare var moment:Function;
 
 @Injectable()
@@ -21,21 +22,22 @@ export class StreamConsumerService {
     return this.connections;
   }
 
-  startConnection(topic: string,env:string,timestamp:number,isOldest:boolean,callback:any){
-    this.activeTab = topic + "|" + env;
- 
-    if(this.isStreamExsits(topic,env)){
-      return this.connections[topic + "|" + env];
+  startConnection(connectionObject:ConnectionObject){
+   
+    this.activeTab = connectionObject.getStreamingKey();
+
+    if(this.isStreamExsits(this.activeTab )){
+      return this.connections[this.activeTab ];
     } 
     else{
-      this.connections[topic + "|" + env] = new ConsumerObject(this.userProfileService,this.socketKafkaService,topic,env,callback,timestamp,isOldest);
+      this.connections[this.activeTab ] = new ConsumerObject(this.socketKafkaService,connectionObject);
     }
-    this.connections[topic + "|" + env].connect();
-    return this.connections[topic + "|" + env];
+    this.connections[this.activeTab ].connect();
+    return this.connections[this.activeTab ];
   }
 
-  isStreamExsits = (topic: string,env:string)=>{
-    if(this.connections[topic + "|" + env])
+  isStreamExsits = (streamingKey:string)=>{
+    if(this.connections[streamingKey])
       return true;
     return false;
   }

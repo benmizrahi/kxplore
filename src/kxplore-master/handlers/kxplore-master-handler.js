@@ -36,7 +36,7 @@ var KxploreMasterHandler = /** @class */ (function () {
         this.stop = function (payload) {
             return new Promise(function (resolve, reject) {
                 try {
-                    _this.workersHandler.stopJob(payload.uuid);
+                    _this.workersHandler.stopJob(payload.job_uuid);
                     resolve({ status: true });
                 }
                 catch (ex) {

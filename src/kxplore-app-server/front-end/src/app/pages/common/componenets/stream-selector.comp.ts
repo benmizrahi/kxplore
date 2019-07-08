@@ -1,13 +1,13 @@
 import { Component } from "@angular/core";
 import { StreamConsumerService } from "../../../services/stream-consumer.service";
-import { ConsumerObject } from "../../../objects/consumer-object";
 import { UserProfileService } from "../../../services/user-profile.service";
+import { ConnectionObject } from "../../../objects/connection-object";
 declare var moment:Function;
 
 @Component({
     selector: 'stream-selector',
     template: `
-         <div class="row" style="width: 100%;">
+         <div class="row" style="width: 100%; height: 53px;">
             <div class="col-lg-2">
                 <div class="row"> 
                     <div class="col-lg-6 header-text">
@@ -20,8 +20,24 @@ declare var moment:Function;
                     </div>
                 </div>
             </div>
+            <div class="col-lg-2" *ngIf="selectedEnv"> 
+                <div class="row"> 
+                    <div class="col-lg-6 header-text">
+                        <span>Type: </span>
+                    </div>
+                    <div class="col-lg-6">
+                    <select class="form-control"  [(ngModel)]="selectedType" >
+                        <option value="Kafka">Kafka</option>
+                        <option value="PubSub">PubSub</option>
+                        <option value="Kinesis">Kinesis</option>
+
+                    </select>
+                    </div>
+                </div>
+            </div>
+           
             <div class="col-lg-2">
-                <div class="row"  *ngIf="selectedEnv"> 
+                <div class="row"  *ngIf="selectedEnv && selectedType"> 
                     <div class="col-lg-4 header-text">
                         <span>Topic: </span>
                     </div>
@@ -29,19 +45,6 @@ declare var moment:Function;
                     <select class="form-control"  [(ngModel)]="selectedTopic">
                         <option *ngFor="let topic of getTopicsInEnv(selectedEnv)">{{topic}}</option>
                     </select>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-2" *ngIf="selectedTopic && selectedEnv">
-                <div class="row" *ngIf="selectedEnv"> 
-                    <div class="col-lg-4 header-text">
-                        <span>Strategy: </span>
-                    </div>
-                    <div class="col-lg-8">
-                        <select class="form-control" [(ngModel)]="selectedStrategy">
-                            <option value="MPP">MPP</option>
-                            <option value="PUSH_FILTER">PUSH_FILTER</option>
-                        </select>
                     </div>
                 </div>
             </div>
@@ -60,6 +63,9 @@ declare var moment:Function;
                 <button *ngIf="selectedTopic && selectedEnv" style="background: #afe0af;" class="btn btn-hero-warning" (click)="startStream()">Pull</button>
             </div>
         </div>
+            <div class="col-lg-12" style="height: 2.75rem;overflow: hidden;">
+                <ngx-monaco-editor [options]="editorOptions" [(ngModel)]="query"></ngx-monaco-editor>
+        </div>
     `,  
     styles:[
         `
@@ -77,33 +83,47 @@ export class StreamSelector{
     selectedTopic:string =  null ;
     selectedEnv:string = null;
     selectedDateTime: Date;
-    selectedStrategy:string = null;
+    selectedStrategy:string = "PUSH_FILTER";
+    selectedType:string = null;
     from = "1";
+
+    editorOptions = {theme: 'vs', language: 'sql',lineNumbers:true,automaticLayout: true,minimap: {
+		enabled: false
+     }};
+     
+     private _query:string
+     
+     public get query() : string {
+         return `select  from ?`
+     }
+
+    public set query(query : string) {
+        this._query = query;
+    }
+    
 
     executers:number = 1;
     constructor(private readonly streamConsumerService:StreamConsumerService,
-        private readonly userProfileService:UserProfileService){
-           
-    }
+        private readonly userProfileService:UserProfileService){}
+
     startStream = () =>{
 
-        if(this.streamConsumerService.isStreamExsits(this.selectedTopic,this.selectedEnv)){
+        let connectionObject = new ConnectionObject()
+        connectionObject.topic = this.selectedTopic
+        connectionObject.env = this.selectedEnv
+        connectionObject.timestamp = this.from  == "3" && this.selectedDateTime  ? moment(this.selectedDateTime).format('x') : null;
+        connectionObject.isOldest = (this.from == "2" ? true : false)
+        connectionObject.strategy  = this.selectedStrategy
+        connectionObject.query = this._query;
+        connectionObject.type  = this.selectedType;
+
+        if(this.streamConsumerService.isStreamExsits(connectionObject.getStreamingKey())){
             alert('please delete the connection before reconnect!')
             return;
         }
         
-    
-        this.streamConsumerService.startConnection(this.selectedTopic,this.selectedEnv,
-            this.from  == "3" && this.selectedDateTime  ? moment(this.selectedDateTime).format('x') : null,
-            (this.from == "2" ? true : false),
-          (res,object:ConsumerObject)=>{
-            if(res.topic != object.topic || res.env != object.env) return ;
-            object.data = res.messages.payload
-            this.streamConsumerService.connectionsList[object.topic  + "|" + object.env].selectedColumns = res.messages.metaColumns.map((col)=>{
-                return { prop: col.columnid }
-            })
-          });
-      };
+        this.streamConsumerService.startConnection(connectionObject);
+    };
 
   getEnvsFromProfile = () => {
     return Object.keys(this.userProfileService.userProfile.envs);

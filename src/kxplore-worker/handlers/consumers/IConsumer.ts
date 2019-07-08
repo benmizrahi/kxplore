@@ -4,29 +4,33 @@ import { KafkaConsumerHandler } from "./kafka-consumer.handler";
 import { IJobInformation } from "../../../kxplore-shared-models/job-details";
 import { MessagePerParition } from "../../consumer-strategy/strategies/messages-agg-per-partition";
 import { PushFilterWorker } from "../../consumer-strategy/strategies/push-filter-workers";
+import { EventEmitter } from "events";
 
 export interface IConsumer {
     start(jobInfo:IJobInformation):Promise<any>
-    stop(jobInfo:IJobInformation):Promise<any>
+    stop(job_uuid:string):Promise<any>
 }
 
 export interface IConsumerMessage {
     recivedTimestamp:Date
-    data:any;
-    dataname?:string
-    groupbykey:number;
-    groupbyname?:string;
+    data:Array<Object>;
 }
 
-export const strategyFactory = (type) => {
-    return new PushFilterWorker(5,"select data,counter from ? where counter > 0.7")
+export interface IStrategyResults {
+    messages:Array<any>
+    outputEmiter:EventEmitter
+    metaColumns:Array<{}>
 }
 
-export function matchPatten(env:IEnvironment,strategy:string):IConsumer{
-    switch(env.type){
+export const strategyFactory = (jobData:IJobInformation) => {
+    return new PushFilterWorker(5,jobData.connectionObject.query)
+}
+
+export function matchPatten(jobData:IJobInformation):IConsumer{
+    switch(jobData.env.type){
          case TargetType.Kafka:
-         return new KafkaConsumerHandler(strategyFactory(strategy));
+         return new KafkaConsumerHandler(strategyFactory(jobData));
          default:
-         return new KafkaConsumerHandler(strategyFactory(strategy));
+         return new KafkaConsumerHandler(strategyFactory(jobData));
      }
  }

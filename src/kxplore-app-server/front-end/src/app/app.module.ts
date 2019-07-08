@@ -32,13 +32,7 @@ import { Ng2SmartTableModule} from 'ng2-smart-table';
 import { AngularFontAwesomeModule } from 'angular-font-awesome';
 import { EditModule } from './pages/edit/edit.module';
 import { AppCommonModule } from './pages/common/app-common.module';
-import { NGX_MONACO_EDITOR_CONFIG, MonacoEditorModule, NgxMonacoEditorConfig } from "ngx-monaco-editor";
 
-const monacoConfig: NgxMonacoEditorConfig = {
-    baseUrl:"assets/",
-    defaultOptions: { scrollBeyondLastLine: false }, // pass default options to be used
-    onMonacoLoad: () => { console.log((<any>window).monaco); } // here monaco object will be available as window.monaco use this function to extend monaco editor functionalities.
-  };
   
 const routes: Routes = [
   {
@@ -88,8 +82,7 @@ const routes: Routes = [
     NbPopoverModule,
     AngularFontAwesomeModule,
     AppCommonModule,
-    EditModule,
-    MonacoEditorModule.forRoot()  ],
+    EditModule ],
   providers: [
     NbSidebarService,
     
@@ -100,7 +93,6 @@ const routes: Routes = [
     SocketKafkaService,
     UserProfileService,
     { provide: APP_INITIALIZER, useFactory: jokesProviderFactory, deps: [UserProfileService], multi: true },
-    { provide: NGX_MONACO_EDITOR_CONFIG, useValue: monacoConfig }
   ],
   bootstrap: [AppComponent],
   entryComponents:[]

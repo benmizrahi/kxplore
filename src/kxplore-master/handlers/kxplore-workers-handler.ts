@@ -17,6 +17,8 @@ export class KxploreWorkersHandler{
         })
         
         this.activeWorkers[uuid] = worker_state
+
+        console.log(`Worker registered : ${uuid} `)
         
     }
 
@@ -31,19 +33,20 @@ export class KxploreWorkersHandler{
     disconnect = (uuid:string) =>{
         if(this.activeWorkers[uuid]){
             delete this.activeWorkers[uuid] //delete the worker!
+            console.log(`Worker disconnected : ${uuid} `)
         }
     }
 
     publishJob = (jobInfo:IJobInformation)=>{
-        this.activeJobs[jobInfo.uuid] =  {event:new EventEmitter(),job:jobInfo};
+        this.activeJobs[jobInfo.job_uuid] =  {event:new EventEmitter(),job:jobInfo};
         console.debug(`active_workers on job submit ${Object.keys(this.activeWorkers)}`)
         Object.keys(this.activeWorkers).map(worker=>{
             this.activeWorkers[worker].socket.emit('NEW_JOB',jobInfo);
             this.activeWorkers[worker].activeJobs.push(jobInfo); //push the job executing in each worker!           
-            this.activeWorkers[worker].socket.on(`JOB_DATA_${jobInfo.uuid}`,( data:{messages:Array<any>,uuid:string})=>{
+            this.activeWorkers[worker].socket.on(`JOB_DATA_${jobInfo.job_uuid}`,( data:{messages:Array<any>,uuid:string})=>{
                 //on data from worker!
-                if(this.activeJobs[jobInfo.uuid]){
-                    this.activeJobs[jobInfo.uuid].event.emit(`MESSAGES_${jobInfo.uuid}`,data)
+                if(this.activeJobs[jobInfo.job_uuid]){
+                    this.activeJobs[jobInfo.job_uuid].event.emit(`MESSAGES_${jobInfo.job_uuid}`,data)
                 }
             })  
         })
@@ -53,7 +56,7 @@ export class KxploreWorkersHandler{
         Object.keys(this.activeWorkers).map(worker=>{
             this.activeWorkers[worker].socket.emit(`DELETE_${uuid}`);//tell the worker to stop!
             this.activeWorkers[worker].activeJobs = this.activeWorkers[worker].activeJobs.filter((job)=>{
-                return job.uuid != uuid
+                return job.job_uuid != uuid
             })//removes the job from active jobs!
         });
         if(this.activeJobs[uuid]){

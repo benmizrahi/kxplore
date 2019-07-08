@@ -41,7 +41,7 @@
         ],"compounds": [
             {
                 "name": "run-all",
-                "configurations": ["kxplore-app-server","kxplore-master","kxplore-worker-1"]
+                "configurations": ["kxplore-app-server","kxplore-master","kxplore-worker-1","kxplore-worker-2"]
             }
         ]
 }

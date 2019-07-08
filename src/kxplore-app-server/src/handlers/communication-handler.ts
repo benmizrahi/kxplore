@@ -3,6 +3,7 @@ import { IDbHandler } from "./db-handler";
 import {DBAction} from '../interfaces/enums'
 import * as superagent from 'superagent';
 import * as io from 'socket.io-client';
+import {ConnectionObject } from '../../../kxplore-shared-models/connection-object'
 
 @Injectable()
 export class CommunicationHandler{
@@ -14,7 +15,7 @@ export class CommunicationHandler{
     }
 
 
-    createNewJob = async (env,topic,uId,fromOffset):Promise<string> => {
+    createNewJob = async (connectionObject:ConnectionObject):Promise<string> => {
         return  new Promise<string>(async (resolve,reject)=>{
             if(!this.envierments){
                 await this.initEnvs()
@@ -23,13 +24,9 @@ export class CommunicationHandler{
                 .send({ 
                     env:{
                         type:"Kafka",
-                        props:this.envierments[env]
+                        props:this.envierments[connectionObject.env]
                     },
-                    fromOffset:fromOffset,
-                    userId:uId,
-                    params:{
-                        topic:topic
-                    }
+                    connectionObject:connectionObject
                 })
                 .end((err, res) => {
                     if(err){
@@ -41,7 +38,7 @@ export class CommunicationHandler{
     }
 
     createJobIDSocket = async (uuid,callback) => {
-        const socket = io.connect(`http://${process.env.MASTER_HOST}/subscribe?uuid=${uuid}`, { reconnect: true });
+        const socket = io.connect(`http://${process.env.MASTER_HOST}/subscribe?uuid=${uuid}`, { reconnect: true,pingTimeout:10000 });
         socket.on(`MESSAGES_${uuid}`, (data) => {
             callback(data);
         });

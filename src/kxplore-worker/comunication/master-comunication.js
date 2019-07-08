@@ -57,7 +57,7 @@ var MasterCommunication = /** @class */ (function () {
         this.active = {};
         //uuid = server id~
         this.start = function (uuid) {
-            var socket = io.connect("http://" + process.env.MASTER_HOST + "/workers?uuid=" + uuid, { reconnect: true });
+            var socket = io.connect("http://" + process.env.MASTER_HOST + "/workers?uuid=" + uuid, { reconnect: true, pingTimeout: 10000 });
             /*
                 On post new job start the traget component!
             */
@@ -67,27 +67,27 @@ var MasterCommunication = /** @class */ (function () {
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
-                            this.active[jobData.uuid] = IConsumer_1.matchPatten(jobData.env, 'MPP');
+                            this.active[jobData.job_uuid] = IConsumer_1.matchPatten(jobData);
                             console.log("worker_id:" + process.env.WORKER_ID + ", uuid: " + uuid + " retrive job: " + JSON.stringify(jobData));
-                            return [4 /*yield*/, this.active[jobData.uuid].start(jobData)];
+                            return [4 /*yield*/, this.active[jobData.job_uuid].start(jobData)];
                         case 1:
                             emiter = _a.sent();
-                            emiter.on("JOB_DATA_" + jobData.uuid, function (data) {
-                                socket.emit("JOB_DATA_" + jobData.uuid, data);
+                            emiter.on("JOB_DATA_" + jobData.job_uuid, function (data) {
+                                socket.emit("JOB_DATA_" + jobData.job_uuid, data);
                             });
                             /*
                                 On delete jon stop the component!
                             */
-                            socket.on("DELETE_" + jobData.uuid, function () { return __awaiter(_this, void 0, void 0, function () {
+                            socket.on("DELETE_" + jobData.job_uuid, function () { return __awaiter(_this, void 0, void 0, function () {
                                 return __generator(this, function (_a) {
                                     switch (_a.label) {
                                         case 0:
-                                            if (!this.active[jobData.uuid]) return [3 /*break*/, 2];
-                                            console.log("DELETE event triggred on worker " + process.env.WORKER_ID + " - job: " + jobData.uuid);
-                                            return [4 /*yield*/, this.active[jobData.uuid].stop(jobData)];
+                                            if (!this.active[jobData.job_uuid]) return [3 /*break*/, 2];
+                                            console.log("DELETE event triggred on worker " + process.env.WORKER_ID + " - job: " + jobData.job_uuid);
+                                            return [4 /*yield*/, this.active[jobData.job_uuid].stop(jobData.job_uuid)];
                                         case 1:
                                             _a.sent();
-                                            delete this.active[jobData.uuid];
+                                            delete this.active[jobData.job_uuid];
                                             _a.label = 2;
                                         case 2: return [2 /*return*/];
                                     }
@@ -100,12 +100,20 @@ var MasterCommunication = /** @class */ (function () {
             socket.on('disconnect', function (ex) {
                 console.error("Worker disconnected workerid:" + uuid + ", error:  " + JSON.stringify(ex));
                 console.info("Start stoping all active jobs, count " + Object.keys(_this.active).length);
-                Object.keys(_this.active).map(function (job) {
-                    if (_this.active[job]) {
-                        _this.active[job].stop();
-                        console.info("job " + job + " stoped!");
-                    }
-                });
+                Object.keys(_this.active).map(function (job) { return __awaiter(_this, void 0, void 0, function () {
+                    return __generator(this, function (_a) {
+                        switch (_a.label) {
+                            case 0:
+                                if (!this.active[job]) return [3 /*break*/, 2];
+                                return [4 /*yield*/, this.active[job].stop()];
+                            case 1:
+                                _a.sent();
+                                console.info("job " + job + " stoped!");
+                                _a.label = 2;
+                            case 2: return [2 /*return*/];
+                        }
+                    });
+                }); });
             });
         };
     }

@@ -8,21 +8,17 @@ declare var Papa:any
   selector: 'kafka-table-obj',
   template: `
   <nb-layout>
-      <nb-layout-header>
-          <stream-selector  style="width: 100%;"></stream-selector>
-      </nb-layout-header>
-      <nb-layout-header style="padding: 0 0rem 0.75rem !important;">
-      <div class="col-lg-12" style="height: 2.75rem;    overflow: hidden;">
-          <ngx-monaco-editor [options]="editorOptions" [(ngModel)]="code"></ngx-monaco-editor>
-        </div>
-      </nb-layout-header>
+
+  <nb-layout-header class="header-layout" style="padding: 1vh 2rem 3vh !important;">
+          <stream-selector style="width: 100%;"></stream-selector> 
+  </nb-layout-header>
   <nb-layout-column style="position: relative;">
     <consumer-wait *ngIf="getKeys(streamConsumerService.connectionsList).length == 0" [title]="'No Active Connections'"></consumer-wait>
     <nb-tabset (changeTab)="tabChanged($event)">
       <nb-tab *ngFor="let connection of getKeys(streamConsumerService.connectionsList)" tabTitle="{{getTabName(connection)}}" [id]="connection" [active]="connection == getActiveTab()"> 
       <div class="row">
           <div class="col-lg-12">
-          <div class="loader" *ngIf="isStreamAlive(connection)"></div>
+           <div class="loader" *ngIf="isStreamAlive(connection)"></div>
           <div class="row">
                <div class="col-lg-12 header-clean">
                 <nb-card style="margin-bottom:0">
@@ -46,7 +42,7 @@ declare var Papa:any
               <div *ngIf="ifRowsExists(connection)" class="header-clean col-lg-12"> 
                         <ngx-datatable class="material" 
                           [columnMode]="'force'"
-                          style="height: 550px;"
+                          style="height: 55vh;box-shadow: none;"
                           [rowHeight]="50"
                           [headerHeight]="50"
                           [scrollbarV]="true"
@@ -133,13 +129,6 @@ declare var Papa:any
 })
 
 export class KafkaConsumer {
-
-  editorOptions = {theme: 'vs', language: 'sql',lineNumbers:true,automaticLayout: true,minimap: {
-		enabled: false
-  }};
-  
-  code: string= 'select * from kafka.events';
-
 
   streamConsumerService:StreamConsumerService;
   

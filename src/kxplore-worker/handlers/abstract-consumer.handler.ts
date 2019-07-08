@@ -15,7 +15,7 @@ export abstract class AbstractConsumer implements IConsumer {
             try {
                 const job = {emiter: new EventEmitter(),privateComp:null}
                 this.init(jobInfo,job)
-                this.activeJobs[jobInfo.uuid] = job;
+                this.activeJobs[jobInfo.job_uuid] = job;
                 resolve(job.emiter)
             }
             catch(ex){
@@ -23,12 +23,14 @@ export abstract class AbstractConsumer implements IConsumer {
             }
         })
     }
-    
-    stop(jobInfo:IJobInformation): Promise<boolean> {
+      
+    stop(job_uuid:string): Promise<boolean> {
         return  new Promise<boolean>((resolve,reject)=>{
             try {
-                this.dispose(this.activeJobs[jobInfo.uuid]);
-                delete this.activeJobs[jobInfo.uuid]
+                if(this.activeJobs[job_uuid]){
+                    this.dispose(this.activeJobs[job_uuid]);
+                    delete this.activeJobs[job_uuid]
+                }
                 resolve(true);
             }     
             catch(ex){

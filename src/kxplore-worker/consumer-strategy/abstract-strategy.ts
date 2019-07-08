@@ -1,6 +1,6 @@
 import { EventEmitter } from "events";
 import { MessagePerParition } from "./strategies/messages-agg-per-partition";
-import { IConsumerMessage } from "../handlers/consumers/IConsumer";
+import { IConsumerMessage, IStrategyResults } from "../handlers/consumers/IConsumer";
 
 export abstract class AbstractStrategy {
   
@@ -8,6 +8,6 @@ export abstract class AbstractStrategy {
 
     abstract outputEmitter:EventEmitter;
 
-    abstract maniplute(message:IConsumerMessage):void
+    abstract maniplute(batchData:IConsumerMessage):Promise<IStrategyResults>
 
 }

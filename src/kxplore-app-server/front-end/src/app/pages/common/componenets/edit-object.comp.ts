@@ -1,10 +1,7 @@
 import { Component, Input, OnInit, Output, ContentChild, TemplateRef } from "@angular/core";
 import { NgXLightTableSettings } from "ngx-lighttable/types/ngx-lighttable-settings.type";
-import { NgXLightTableSortableDirectionEnum } from "ngx-lighttable";
-import { Envierment } from "../../../objects/envierment";
 import { IEditeable } from "../../../objects/IEditable";
 import { IObjectService } from "../../../objects/IObjectService";
-import { Observable } from "rxjs";
 
 @Component({
     selector: 'edit-panel',

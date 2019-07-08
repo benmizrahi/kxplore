@@ -1,43 +1,45 @@
 import {SocketKafkaService} from "../services/socket-kafka.service";
-import * as query from './sqlTokinazer/index';
 import { environment } from "../../environments/environment";
-import { UserProfileService } from "../services/user-profile.service";
+import { ConnectionObject } from "./connection-object";
+import { runInThisContext } from "vm";
 declare var moment:Function;
 
 export class ConsumerObject{
-
-
 
   public streamAlive:boolean = false;
   public events:Array<any> = []
   public counter:number = 0
   public consumed:number = 0
-  private consumerid;
   public selectedJSON = null;
-
   public selectedColumns = []
 
+  private _data:any[] = [];
+  viewSource:any[] = []
+
   constructor(
-              private readonly userProfileService:UserProfileService,
               private socketKafkaService:SocketKafkaService,
-              public topic: string,
-              public env:string,
-              private callback:any,
-              private timestamp?:number,
-              private isOldest?:boolean){
+              private readonly connectionObject:ConnectionObject){
                 this.viewSource = []
               }
 
   connect(){
-    this.socketKafkaService.emit("consumer-connect", {topic:this.topic,env: this.env,isOldest:this.isOldest,timestamp:this.timestamp,filter:this._filter});
-    this.socketKafkaService.fromEvent(`consumer-id-${this.topic}-${this.env}-error`).subscribe((res:any)=>{
+    this.socketKafkaService.emit("consumer-connect", {connectionObject:this.connectionObject});
+    this.socketKafkaService.fromEvent(`consumer-id-${this.connectionObject.getStreamingKey()}-error`).subscribe((res:any)=>{
       alert(JSON.stringify(res))
       this.streamAlive = false;
    });
-    this.socketKafkaService.fromEvent(`akk-consumer-id-${this.topic}-${this.env}`).subscribe((res:any)=>{
-      this.consumerid = res.id
-      this.socketKafkaService.fromEvent(`messages-list-${this.topic}-${this.env}`).subscribe((res)=>{
-        this.callback(res,this)
+    this.socketKafkaService.fromEvent(`akk-consumer-id-${this.connectionObject.getStreamingKey()}`).subscribe((res:any)=>{
+      this.connectionObject.job_id = res.id
+      this.socketKafkaService.fromEvent(`messages-list-${this.connectionObject.getStreamingKey()}`).subscribe((res:any)=>{
+          this.data = res.messages.payload;
+          this.selectedColumns = res.messages.metaColumns[0].columns.map((column)=>{
+              if (column['as']) return column['as'];
+              if(column['columnid']) return column['columnid']
+              if(column['aggregatorid'] && column['expression']) return `${column['aggregatorid']}(${column['expression'].columnid})`
+              else "UNKONWN"
+            }).map((column)=>{
+                return  { prop: column }
+            });
       });
       this.streamAlive = true;
     });
@@ -48,36 +50,26 @@ export class ConsumerObject{
   }
 
   private clearListeners = () => {
-    this.socketKafkaService.removeListener(`akk-consumer-id-${this.topic}-${this.env}`)
-    this.socketKafkaService.removeListener(`consumer-id-${this.topic}-${this.env}-error`)
-    this.socketKafkaService.removeListener(`messages-list-${this.topic}-${this.env}`)
+    this.socketKafkaService.removeListener(`akk-consumer-id-${this.connectionObject.getStreamingKey()}`)
+    this.socketKafkaService.removeListener(`consumer-id-${this.connectionObject.getStreamingKey()}-error`)
+    this.socketKafkaService.removeListener(`messages-list-${this.connectionObject.getStreamingKey()}`)
   }
 
   pause(){
-    this.socketKafkaService.emit("pause", {topic:this.topic,env: this.env,id:this.consumerid});
+    this.socketKafkaService.emit("pause", {connectionObject:this.connectionObject});
     this.streamAlive = false;
   }
   
   resume(){
-    this.socketKafkaService.emit("resume", {topic:this.topic,env: this.env,id:this.consumerid});
+    this.socketKafkaService.emit("resume", {connectionObject:this.connectionObject});
     this.streamAlive = true;
   }
 
   delete(){
-    this.socketKafkaService.emit("delete", {topic:this.topic,env: this.env,id:this.consumerid});
+    this.socketKafkaService.emit("delete", {connectionObject:this.connectionObject});
     this.streamAlive = false;
   }
 
-  // applyFilter = (messages:Array<any>,filter:string) => {
-  //   return  messages.map(x=> {
-  //           let results = query([x.message], filter);
-  //           if(results.length == 0) return null;
-  //           else return { message:results[0],offset:x.offset,partition:x.partition}
-  //   }).filter(x => x !== null);
-  // }
-
-  private _data:any[] = [];
-  viewSource:any[] = []
 
   set data(objects:any[]){
     

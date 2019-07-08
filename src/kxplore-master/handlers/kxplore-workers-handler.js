@@ -20,6 +20,7 @@ var KxploreWorkersHandler = /** @class */ (function () {
                 worker_state.socket.emit('NEW_JOB', _this.activeJobs[job_id].job);
             });
             _this.activeWorkers[uuid] = worker_state;
+            console.log("Worker registered : " + uuid + " ");
         };
         this.subscribe = function (uuid) {
             if (_this.activeJobs[uuid])
@@ -31,18 +32,19 @@ var KxploreWorkersHandler = /** @class */ (function () {
         this.disconnect = function (uuid) {
             if (_this.activeWorkers[uuid]) {
                 delete _this.activeWorkers[uuid]; //delete the worker!
+                console.log("Worker disconnected : " + uuid + " ");
             }
         };
         this.publishJob = function (jobInfo) {
-            _this.activeJobs[jobInfo.uuid] = { event: new events_1.EventEmitter(), job: jobInfo };
+            _this.activeJobs[jobInfo.job_uuid] = { event: new events_1.EventEmitter(), job: jobInfo };
             console.debug("active_workers on job submit " + Object.keys(_this.activeWorkers));
             Object.keys(_this.activeWorkers).map(function (worker) {
                 _this.activeWorkers[worker].socket.emit('NEW_JOB', jobInfo);
                 _this.activeWorkers[worker].activeJobs.push(jobInfo); //push the job executing in each worker!           
-                _this.activeWorkers[worker].socket.on("JOB_DATA_" + jobInfo.uuid, function (data) {
+                _this.activeWorkers[worker].socket.on("JOB_DATA_" + jobInfo.job_uuid, function (data) {
                     //on data from worker!
-                    if (_this.activeJobs[jobInfo.uuid]) {
-                        _this.activeJobs[jobInfo.uuid].event.emit("MESSAGES_" + jobInfo.uuid, data);
+                    if (_this.activeJobs[jobInfo.job_uuid]) {
+                        _this.activeJobs[jobInfo.job_uuid].event.emit("MESSAGES_" + jobInfo.job_uuid, data);
                     }
                 });
             });
@@ -51,7 +53,7 @@ var KxploreWorkersHandler = /** @class */ (function () {
             Object.keys(_this.activeWorkers).map(function (worker) {
                 _this.activeWorkers[worker].socket.emit("DELETE_" + uuid); //tell the worker to stop!
                 _this.activeWorkers[worker].activeJobs = _this.activeWorkers[worker].activeJobs.filter(function (job) {
-                    return job.uuid != uuid;
+                    return job.job_uuid != uuid;
                 }); //removes the job from active jobs!
             });
             if (_this.activeJobs[uuid]) {

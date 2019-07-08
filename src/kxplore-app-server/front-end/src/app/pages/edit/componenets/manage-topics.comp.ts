@@ -3,7 +3,7 @@ import { Topic } from "../../../objects/topic";
 import { NgXLightTableSettings } from "ngx-lighttable/types/ngx-lighttable-settings.type";
 import { TopicManageService } from "../services/topic-manage.service";
 import { EnvManagmentService } from "../services/env-manage.service";
-import { Envierment } from "../../../objects/envierment";
+import { Environment } from "../../../objects/environment";
 
 @Component({
     selector: 'topics-edit',
@@ -65,7 +65,7 @@ export class ManageTopics {
           allowNeutralSort: true // Optional
     }
 
-    public envList:Array<Envierment>
+    public envList:Array<Environment>
     public topicsList:Array<Topic>
 
     constructor(public readonly topicsService:TopicManageService,
