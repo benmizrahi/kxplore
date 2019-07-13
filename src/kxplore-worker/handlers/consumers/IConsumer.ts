@@ -1,10 +1,9 @@
-import { IEnvironment } from "../../../kxplore-shared-models/envierment";
 import { TargetType } from "../../../kxplore-shared-models/enums";
 import { KafkaConsumerHandler } from "./kafka-consumer.handler";
 import { IJobInformation } from "../../../kxplore-shared-models/job-details";
-import { MessagePerParition } from "../../consumer-strategy/strategies/messages-agg-per-partition";
 import { PushFilterWorker } from "../../consumer-strategy/strategies/push-filter-workers";
 import { EventEmitter } from "events";
+import { PubSubConsumerHandler } from "./pubsub-consumer.handler";
 
 export interface IConsumer {
     start(jobInfo:IJobInformation):Promise<any>
@@ -27,9 +26,11 @@ export const strategyFactory = (jobData:IJobInformation) => {
 }
 
 export function matchPatten(jobData:IJobInformation):IConsumer{
-    switch(jobData.env.type){
+    switch(jobData.connectionObject.type){
          case TargetType.Kafka:
          return new KafkaConsumerHandler(strategyFactory(jobData));
+         case TargetType.PubSub:
+         return new PubSubConsumerHandler(strategyFactory(jobData));
          default:
          return new KafkaConsumerHandler(strategyFactory(jobData));
      }

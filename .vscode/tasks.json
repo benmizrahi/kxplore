@@ -5,47 +5,6 @@
     "tasks": [
         {
             "type": "typescript",
-            "tsconfig": "src/front-server/tsconfig.json",
-            "option": "watch",
-            "problemMatcher": [
-                "$tsc-watch"
-            ],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
-        },
-        {
-            "type": "npm",
-            "script": "run:dev:server",
-            "path": "src/kxplore-app-server/",
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
-        },
-        {
-            "type": "typescript",
-            "tsconfig": "src/kxplore-app-server/tsconfig.json",
-            "problemMatcher": [
-                "$tsc"
-            ]
-        },
-        {
-            "type": "typescript",
-            "tsconfig": "src/kxplore-master/tsconfig.json",
-            "problemMatcher": [
-                "$tsc"
-            ]
-        },
-        {
-            "type": "npm",
-            "script": "build",
-            "path": "src/kxplore-app-server/",
-            "problemMatcher": []
-        },
-        {
-            "type": "typescript",
             "tsconfig": "src/kxplore-worker/tsconfig.json",
             "option": "watch",
             "problemMatcher": [
@@ -55,6 +14,14 @@
         {
             "type": "typescript",
             "tsconfig": "src/kxplore-app-server/tsconfig.json",
+            "option": "watch",
+            "problemMatcher": [
+                "$tsc-watch"
+            ]
+        },
+        {
+            "type": "typescript",
+            "tsconfig": "src/kxplore-master/tsconfig.json",
             "option": "watch",
             "problemMatcher": [
                 "$tsc-watch"

@@ -1,3 +1,4 @@
 {
-    "git.ignoreLimitWarning": true
+    "git.ignoreLimitWarning": true,
+    "typescript.tsdk": "/Users/benmizrahi/.local/lib/node_modules/typescript/lib"
 }

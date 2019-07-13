@@ -6,63 +6,66 @@ import {EventEmitter } from 'events';
 @Injectable()
 export class KxploreWorkersHandler{
 
-    private readonly activeJobs:{ [uuid: string] :  {event:EventEmitter, job:IJobInformation } } = {}
-    private readonly activeWorkers:{ [uuid: string] : { socket:socket.Socket,activeJobs:IJobInformation[] }; } = {}
+    private readonly activeJobs:{ [uuid: string] :  {event:EventEmitter, job:IJobInformation, activeWorkers:Array<string> } } = {}
+    private readonly activeWorkers:{ [uuid: string] : socket.Socket } = {}
+
 
     connect = (uuid:string,socket:socket.Socket) => {
-        let worker_state = {socket:socket,activeJobs:[]};
-        Object.keys(this.activeJobs).map(job_id=>{
-            worker_state.activeJobs.push(this.activeJobs[job_id].job)
-            worker_state.socket.emit('NEW_JOB',this.activeJobs[job_id].job);
-        })
-        
-        this.activeWorkers[uuid] = worker_state
-
         console.log(`Worker registered : ${uuid} `)
-        
+        this.activeWorkers[uuid] = socket;
+        Object.keys(this.activeJobs).map(job_id=>{  
+            this.publish_job_to_worker(this.activeJobs[job_id].job,socket,this.activeJobs[job_id].event)
+            this.activeJobs[job_id].activeWorkers.push(uuid);
+        });
+
     }
 
     subscribe = (uuid:string):EventEmitter => {
-        if(this.activeJobs[uuid])
-            return this.activeJobs[uuid].event;
-        else{
-            return null;
-        }
+         if(this.activeJobs[uuid])
+             return this.activeJobs[uuid].event;
+         else{
+             return null;
+         }
     }
 
     disconnect = (uuid:string) =>{
-        if(this.activeWorkers[uuid]){
-            delete this.activeWorkers[uuid] //delete the worker!
-            console.log(`Worker disconnected : ${uuid} `)
-        }
+        //delete worker form list
+        delete this.activeWorkers[uuid];
+        //delete worker from all active jobs
+        Object.keys(this.activeJobs).map(job_id=>{
+            let index = this.activeJobs[job_id].activeWorkers.indexOf(uuid);
+            if(index > -1)
+                this.activeJobs[job_id].activeWorkers = this.activeJobs[job_id].activeWorkers.splice(index,1)
+        });
+        console.log(`Worker disconnected : ${uuid} `)
     }
 
     publishJob = (jobInfo:IJobInformation)=>{
-        this.activeJobs[jobInfo.job_uuid] =  {event:new EventEmitter(),job:jobInfo};
-        console.debug(`active_workers on job submit ${Object.keys(this.activeWorkers)}`)
-        Object.keys(this.activeWorkers).map(worker=>{
-            this.activeWorkers[worker].socket.emit('NEW_JOB',jobInfo);
-            this.activeWorkers[worker].activeJobs.push(jobInfo); //push the job executing in each worker!           
-            this.activeWorkers[worker].socket.on(`JOB_DATA_${jobInfo.job_uuid}`,( data:{messages:Array<any>,uuid:string})=>{
-                //on data from worker!
-                if(this.activeJobs[jobInfo.job_uuid]){
-                    this.activeJobs[jobInfo.job_uuid].event.emit(`MESSAGES_${jobInfo.job_uuid}`,data)
-                }
-            })  
+         this.activeJobs[jobInfo.job_uuid] =  {event:new EventEmitter(),job:jobInfo,activeWorkers:[]};
+         Object.keys(this.activeWorkers).map(worker=>{
+            this.publish_job_to_worker(jobInfo,this.activeWorkers[worker],this.activeJobs[jobInfo.job_uuid].event)
+            this.activeJobs[jobInfo.job_uuid].activeWorkers.push(worker);
         })
     }
 
     stopJob = (uuid:string) => {
         Object.keys(this.activeWorkers).map(worker=>{
-            this.activeWorkers[worker].socket.emit(`DELETE_${uuid}`);//tell the worker to stop!
-            this.activeWorkers[worker].activeJobs = this.activeWorkers[worker].activeJobs.filter((job)=>{
-                return job.job_uuid != uuid
-            })//removes the job from active jobs!
+             this.activeWorkers[worker].emit(`DELETE_${uuid}`);//tell the worker to stop!
         });
         if(this.activeJobs[uuid]){
             this.activeJobs[uuid].event.removeAllListeners()
             delete this.activeJobs[uuid]
         }
     }
+    
 
+    private publish_job_to_worker = (jobInfo:IJobInformation,worker_socket:socket.Socket ,job_emmiter:EventEmitter) => {
+        worker_socket.emit('NEW_JOB',jobInfo);
+        worker_socket.on(`JOB_DATA_${jobInfo.job_uuid}`,( data:{messages:Array<any>,uuid:string})=>{
+            //on data from worker!
+            if(this.activeJobs[jobInfo.job_uuid]){
+                job_emmiter.emit(`MESSAGES_${jobInfo.job_uuid}`,data)
+            }
+        })  
+    }
 }

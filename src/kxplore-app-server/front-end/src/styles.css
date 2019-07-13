@@ -593,8 +593,8 @@ envierments-edit > * > * > * > .ngx-lighttable > * .ngx-lighttable__header-cell:
 }
 
 .nb-theme-default nb-tabset .tabset .tab a::before{
-  background: #aed2bd !important;
-  background-image: linear-gradient(to right, #e0e0e0, #45a56b) !important;
+  background: transparent !important;
+  background-image: transparent !important;
 }
 
 .nb-theme-default nb-layout .layout .header-layout nav{

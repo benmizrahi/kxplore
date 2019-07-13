@@ -21,7 +21,12 @@ export class Server {
         app.use( bodyParser.urlencoded({
           extended: true
         }));
-        var io:SocketIO.Server = require('socket.io')(server);
+        var io:SocketIO.Server = require('socket.io')(server,{
+            upgradeTimeout: 30000,
+            transports: ['websocket'],
+            allowUpgrades: false,
+            pingTimeout: 30000,
+        });
         jobExecuterRoute.register(app,io);
         workersSocketRoute.register(io);       
     }

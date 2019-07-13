@@ -31,7 +31,12 @@ var Server = /** @class */ (function () {
         app.use(bodyParser.urlencoded({
             extended: true
         }));
-        var io = require('socket.io')(server);
+        var io = require('socket.io')(server, {
+            upgradeTimeout: 30000,
+            transports: ['websocket'],
+            allowUpgrades: false,
+            pingTimeout: 30000,
+        });
         jobExecuterRoute.register(app, io);
         workersSocketRoute.register(io);
     }

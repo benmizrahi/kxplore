@@ -1,5 +1,5 @@
 export enum TargetType{
-    Kafka,
-    Kinesis,
-    PubSub
+    Kafka = "Kafka",
+    Kinesis = "Kinesis",
+    PubSub = "PubSub"
 }

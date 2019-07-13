@@ -5,6 +5,7 @@
   "main": "index.js",
   "dependencies": {
     "@decorators/di": "^1.0.2",
+    "@google-cloud/pubsub": "^0.30.1",
     "@types/es6-promise": "^3.3.0",
     "@types/express": "^4.17.0",
     "@types/mysql": "^2.15.4",
@@ -20,14 +21,13 @@
     "dotenv": "^8.0.0",
     "express": "^4.16.3",
     "express-jwt": "^5.3.1",
-    "franz-kafka": "^0.7.5",
     "gijgo-angular-wrappers": "^1.9.8",
     "http": "0.0.0",
+    "http2": "^3.3.7",
     "joi": "^13.3.0",
     "jsonsql": "^0.2.5",
     "jsonwebtoken": "^8.2.1",
-    "kafka-node": "^2.6.1",
-    "kafka-node-topic-consumer": "^0.3.5",
+    "kafkajs": "^1.9.3",
     "moment": "^2.22.2",
     "mysql": "github:mysqljs/mysql",
     "mysql2": "^1.6.4",
@@ -42,16 +42,15 @@
     "request": "^2.87.0",
     "rxjs": "^6.2.1",
     "rxjs-compat": "^6.2.1",
-    "sequelize": "^4.41.2",
+    "sequelize": "^4.44.2",
     "socket.io": "^2.1.0",
     "socket.io-redis": "^5.2.0",
     "sqlite3": "^4.0.0",
     "superagent": "^4.0.0-beta.5",
     "threads": "^0.12.0",
-    "typescript": "^2.9.2",
     "uuid": "^3.3.2",
     "webworker-threads": "^0.7.16",
-    "xtend": "^4.0.1"
+    "xtend": "^4.0.2"
   },
   "devDependencies": {
     "@types/chai": "^4.1.4",
@@ -59,7 +58,8 @@
     "chai": "^4.1.2",
     "mocha": "^5.2.0",
     "mocha-typescript": "^1.1.17",
-    "ts-node": "^6.2.0"
+    "ts-node": "^6.2.0",
+    "typescript": "^3.5.3"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

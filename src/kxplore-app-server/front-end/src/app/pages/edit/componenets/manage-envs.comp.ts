@@ -25,6 +25,8 @@ import { EnvManagmentService } from "../services/env-manage.service";
                                 <label>Select Topic</label>
                                 <input class="form-control"  [(ngModel)]="data.envName" placeholder="Envierment Name" type="text">
                             </div>
+                            <ace-editor (textChanged)="onChange(data,$event)" [text]="getPropsJSON(data.props)" mode="json" [theme]="'eclipse'" #editor style="height:300px;"></ace-editor>
+
                             <div class="row" *ngIf="pasringError">
                                 <div *ngIf="pasringError" class="alert alert-danger" role="alert"><strong >Oh snap!</strong> JSON is not valid </div>
                             </div>
@@ -33,9 +35,6 @@ import { EnvManagmentService } from "../services/env-manage.service";
 })
 export class ManageEnvs {
     
-    editorOptions = {theme: 'vs', language: 'json',lineNumbers:true,automaticLayout: true,minimap: {
-		enabled: false
-     }};
     
     emptyTemplate:Environment;
     pasringError:string = null;
@@ -67,13 +66,7 @@ export class ManageEnvs {
    
 
     getPropsJSON = (props:Object) => {
-        if(!this.original_props){
-            this.original_props = JSON.stringify(props,null,'\t')
-        }
-        return {
-            value:this.original_props,
-            language: 'json'
-        }
+        return JSON.stringify(props,null,'\t');
     }
 
     onChange = (object:Environment,data) => {

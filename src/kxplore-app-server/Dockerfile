@@ -1,6 +1,13 @@
-FROM node:8.11.2
-WORKDIR /server
-COPY . /server
-EXPOSE 3000
-RUN npm install
-CMD [ "npm", "start" ]
+FROM node:8.12-alpine as builder
+
+WORKDIR /var/src
+
+RUN npm install typescript -g
+
+COPY . .
+
+RUN npm install 
+
+WORKDIR /var/src/front-end/
+
+RUN ng build

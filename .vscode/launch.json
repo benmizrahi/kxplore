@@ -24,7 +24,9 @@
             "name": "kxplore-worker-1",
             "cwd": "${workspaceFolder}/src/kxplore-worker/",
             "env": {
-                "WORKER_ID":"1"
+                "WORKER_ID":"1",
+                "PUBSUB_EMULATOR_HOST":"localhost:8681",
+                "PUBSUB_PROJECT_ID":"company-dev"
             },
             "program": "${workspaceFolder}/src/kxplore-worker/startup.js"
         },
@@ -33,7 +35,9 @@
             "request": "launch",
             "name": "kxplore-worker-2",
             "env": {
-                "WORKER_ID":"2"
+                "WORKER_ID":"2",
+                "PUBSUB_EMULATOR_HOST":"localhost:8681",
+                "PUBSUB_PROJECT_ID":"company-dev"
             },
             "cwd": "${workspaceFolder}/src/kxplore-worker/",
             "program": "${workspaceFolder}/src/kxplore-worker/startup.js"
@@ -41,7 +45,7 @@
         ],"compounds": [
             {
                 "name": "run-all",
-                "configurations": ["kxplore-app-server","kxplore-master","kxplore-worker-1","kxplore-worker-2"]
+                "configurations": ["kxplore-app-server","kxplore-master","kxplore-worker-1"]
             }
         ]
 }

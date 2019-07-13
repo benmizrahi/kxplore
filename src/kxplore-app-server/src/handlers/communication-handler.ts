@@ -38,7 +38,11 @@ export class CommunicationHandler{
     }
 
     createJobIDSocket = async (uuid,callback) => {
-        const socket = io.connect(`http://${process.env.MASTER_HOST}/subscribe?uuid=${uuid}`, { reconnect: true,pingTimeout:10000 });
+        const socket = io.connect(`http://${process.env.MASTER_HOST}/subscribe?uuid=${uuid}`, { reconnect: true,
+        upgradeTimeout: 30000,
+        transports: ['websocket'],
+        allowUpgrades: false,
+        pingTimeout: 30000 });
         socket.on(`MESSAGES_${uuid}`, (data) => {
             callback(data);
         });

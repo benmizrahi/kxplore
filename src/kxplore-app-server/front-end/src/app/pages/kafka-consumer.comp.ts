@@ -168,7 +168,7 @@ export class KafkaConsumer {
   }
 
   onSelect(connection,{ selected }) {
-    this.streamConsumerService.connectionsList[connection].selectedJSON =  JSON.parse(selected[0].message)  
+    //this.streamConsumerService.connectionsList[connection].selectedJSON =  JSON.parse(selected[0].message)  
   }
 
 

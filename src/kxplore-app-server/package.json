@@ -8,7 +8,7 @@
     "watch": "tsc -w -p .",
     "debug": "nodemon --watch ./dist --inspect=0.0.0.0:9222 --nolazy ./dist/server.js",
     "docker-debug": "docker-compose up",
-    "build": "npm install && cd app && npm install",
+    "build": "npm install",
     "run:dev:app": "cd app && ng build  --output-path ../dist --watch",
     "build:prod:app": "cd app && ng build --preserve-symlinks --output-path ../dist --prod",
     "run:dev:server": "CONFIG_PATH=./env.dev.json BASE_DOMAIN_URL=http://localhost:3000 node startup.js",
@@ -18,6 +18,7 @@
   "license": "ISC",
   "dependencies": {
     "@decorators/di": "^1.0.2",
+    "@google-cloud/pubsub": "^0.30.1",
     "@types/es6-promise": "^3.3.0",
     "@types/mysql": "^2.15.4",
     "@types/superagent": "^4.1.1",

@@ -14,13 +14,12 @@ var KxploreWorkersHandler = /** @class */ (function () {
         this.activeJobs = {};
         this.activeWorkers = {};
         this.connect = function (uuid, socket) {
-            var worker_state = { socket: socket, activeJobs: [] };
-            Object.keys(_this.activeJobs).map(function (job_id) {
-                worker_state.activeJobs.push(_this.activeJobs[job_id].job);
-                worker_state.socket.emit('NEW_JOB', _this.activeJobs[job_id].job);
-            });
-            _this.activeWorkers[uuid] = worker_state;
             console.log("Worker registered : " + uuid + " ");
+            _this.activeWorkers[uuid] = socket;
+            Object.keys(_this.activeJobs).map(function (job_id) {
+                _this.publish_job_to_worker(_this.activeJobs[job_id].job, socket, _this.activeJobs[job_id].event);
+                _this.activeJobs[job_id].activeWorkers.push(uuid);
+            });
         };
         this.subscribe = function (uuid) {
             if (_this.activeJobs[uuid])
@@ -30,36 +29,40 @@ var KxploreWorkersHandler = /** @class */ (function () {
             }
         };
         this.disconnect = function (uuid) {
-            if (_this.activeWorkers[uuid]) {
-                delete _this.activeWorkers[uuid]; //delete the worker!
-                console.log("Worker disconnected : " + uuid + " ");
-            }
+            //delete worker form list
+            delete _this.activeWorkers[uuid];
+            //delete worker from all active jobs
+            Object.keys(_this.activeJobs).map(function (job_id) {
+                var index = _this.activeJobs[job_id].activeWorkers.indexOf(uuid);
+                if (index > -1)
+                    _this.activeJobs[job_id].activeWorkers = _this.activeJobs[job_id].activeWorkers.splice(index, 1);
+            });
+            console.log("Worker disconnected : " + uuid + " ");
         };
         this.publishJob = function (jobInfo) {
-            _this.activeJobs[jobInfo.job_uuid] = { event: new events_1.EventEmitter(), job: jobInfo };
-            console.debug("active_workers on job submit " + Object.keys(_this.activeWorkers));
+            _this.activeJobs[jobInfo.job_uuid] = { event: new events_1.EventEmitter(), job: jobInfo, activeWorkers: [] };
             Object.keys(_this.activeWorkers).map(function (worker) {
-                _this.activeWorkers[worker].socket.emit('NEW_JOB', jobInfo);
-                _this.activeWorkers[worker].activeJobs.push(jobInfo); //push the job executing in each worker!           
-                _this.activeWorkers[worker].socket.on("JOB_DATA_" + jobInfo.job_uuid, function (data) {
-                    //on data from worker!
-                    if (_this.activeJobs[jobInfo.job_uuid]) {
-                        _this.activeJobs[jobInfo.job_uuid].event.emit("MESSAGES_" + jobInfo.job_uuid, data);
-                    }
-                });
+                _this.publish_job_to_worker(jobInfo, _this.activeWorkers[worker], _this.activeJobs[jobInfo.job_uuid].event);
+                _this.activeJobs[jobInfo.job_uuid].activeWorkers.push(worker);
             });
         };
         this.stopJob = function (uuid) {
             Object.keys(_this.activeWorkers).map(function (worker) {
-                _this.activeWorkers[worker].socket.emit("DELETE_" + uuid); //tell the worker to stop!
-                _this.activeWorkers[worker].activeJobs = _this.activeWorkers[worker].activeJobs.filter(function (job) {
-                    return job.job_uuid != uuid;
-                }); //removes the job from active jobs!
+                _this.activeWorkers[worker].emit("DELETE_" + uuid); //tell the worker to stop!
             });
             if (_this.activeJobs[uuid]) {
                 _this.activeJobs[uuid].event.removeAllListeners();
                 delete _this.activeJobs[uuid];
             }
+        };
+        this.publish_job_to_worker = function (jobInfo, worker_socket, job_emmiter) {
+            worker_socket.emit('NEW_JOB', jobInfo);
+            worker_socket.on("JOB_DATA_" + jobInfo.job_uuid, function (data) {
+                //on data from worker!
+                if (_this.activeJobs[jobInfo.job_uuid]) {
+                    job_emmiter.emit("MESSAGES_" + jobInfo.job_uuid, data);
+                }
+            });
         };
     }
     KxploreWorkersHandler = __decorate([

@@ -12,5 +12,5 @@
             "app",
             "src/dist",
             "front-end",
-            "kafka-producer.js"]
+            "producers"]
 }
