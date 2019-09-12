@@ -1,5 +1,5 @@
 ## ![alt text](https://raw.githubusercontent.com/benmizrahi/Kxplore/master/app/src/assets/k_logo.png)
-## Montivation
+## Motivation
 Our mission is to create a simple and stable tool that can give us the ability to explore data in our Kafka topics - Kxplore containes is a UI layer over Kafka consumer that gives powefull tools over you're Kafka cluster.
 
 ### Features Included
