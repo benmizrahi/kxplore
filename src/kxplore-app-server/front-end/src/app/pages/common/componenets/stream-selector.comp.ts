@@ -28,9 +28,6 @@ declare var moment:Function;
                     <div class="col-lg-6">
                     <select class="form-control"  [(ngModel)]="selectedType" >
                         <option value="Kafka">Kafka</option>
-                        <option value="PubSub">PubSub</option>
-                        <option value="Kinesis">Kinesis</option>
-
                     </select>
                     </div>
                 </div>
@@ -91,10 +88,10 @@ export class StreamSelector{
 		enabled: false
      }};
      
-     private _query:string
+     private _query:string = `select *  from ?`
      
      public get query() : string {
-         return `select  from ?`
+         return this._query
      }
 
     public set query(query : string) {

@@ -50,7 +50,6 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var kafkajs_1 = require("kafkajs");
 var abstract_consumer_handler_1 = require("../abstract-consumer.handler");
-var Queue = require('better-queue');
 var KafkaConsumerHandler = /** @class */ (function (_super) {
     __extends(KafkaConsumerHandler, _super);
     function KafkaConsumerHandler() {

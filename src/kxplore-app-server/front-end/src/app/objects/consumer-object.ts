@@ -2,6 +2,7 @@ import {SocketKafkaService} from "../services/socket-kafka.service";
 import { environment } from "../../environments/environment";
 import { ConnectionObject } from "./connection-object";
 import { runInThisContext } from "vm";
+import { jsonpCallbackContext } from "@angular/common/http/src/module";
 declare var moment:Function;
 
 export class ConsumerObject{
@@ -31,15 +32,21 @@ export class ConsumerObject{
     this.socketKafkaService.fromEvent(`akk-consumer-id-${this.connectionObject.getStreamingKey()}`).subscribe((res:any)=>{
       this.connectionObject.job_id = res.id
       this.socketKafkaService.fromEvent(`messages-list-${this.connectionObject.getStreamingKey()}`).subscribe((res:any)=>{
-          this.data = res.messages.payload;
           this.selectedColumns = res.messages.metaColumns[0].columns.map((column)=>{
               if (column['as']) return column['as'];
               if(column['columnid']) return column['columnid']
               if(column['aggregatorid'] && column['expression']) return `${column['aggregatorid']}(${column['expression'].columnid})`
               else "UNKONWN"
             }).map((column)=>{
+               if(column == "*"){
+                  this.data = res.messages.payload.map((row)=>{
+                      return { "*": JSON.stringify(row) }
+                  })
+                }else{
+                  this.data = res.messages.payload
+                }
                 return  { prop: column }
-            });
+            })
       });
       this.streamAlive = true;
     });

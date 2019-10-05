@@ -600,3 +600,15 @@ envierments-edit > * > * > * > .ngx-lighttable > * .ngx-lighttable__header-cell:
 .nb-theme-default nb-layout .layout .header-layout nav{
   height: 7.75rem;
 }
+
+.nb-theme-default nb-tabset .tabset .tab a{
+  padding: 0px 0 6px 0px !important;
+}
+
+.nb-theme-default nb-layout .layout nb-layout-header ~ .layout-container{
+  min-height: auto !important;
+}
+
+.nb-theme-default nb-layout .layout{
+  min-height: calc(100vh - 76px) !important;
+}

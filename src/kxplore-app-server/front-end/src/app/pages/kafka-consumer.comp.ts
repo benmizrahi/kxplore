@@ -14,35 +14,14 @@ declare var Papa:any
   </nb-layout-header>
   <nb-layout-column style="position: relative;">
     <consumer-wait *ngIf="getKeys(streamConsumerService.connectionsList).length == 0" [title]="'No Active Connections'"></consumer-wait>
+    
+    
     <nb-tabset (changeTab)="tabChanged($event)">
       <nb-tab *ngFor="let connection of getKeys(streamConsumerService.connectionsList)" tabTitle="{{getTabName(connection)}}" [id]="connection" [active]="connection == getActiveTab()"> 
-      <div class="row">
-          <div class="col-lg-12">
-           <div class="loader" *ngIf="isStreamAlive(connection)"></div>
-          <div class="row">
-               <div class="col-lg-12 header-clean">
-                <nb-card style="margin-bottom:0">
-                  <nb-card-header>
-                  <div class="row">
-                    <div class="col-lg-3">
-                      <div class="stream-controller">
-                          <i *ngIf=!isStreamAlive(connection) (click)="resumeStreaming(connection)" class="fa fa-play fa-x3" style="color: green;"></i>
-                          <i *ngIf=isStreamAlive(connection) (click)="stopStreaming(connection)" class="fa fa-stop fa-x3" style="color: #9e1414e3;"></i>
-                          <i class="fa fa-file-o"  (click)="downloadObjectAsJson(connection)"></i>
-                          <i class="fa fa-file-excel-o"  (click)="downloadObjectAsCSV(connection)"></i>
-                          <i class="fa fa-close fa-x3" style="color: #232223;" (click)="closeStream(connection)"></i>
-                          <div> {{streamConsumerService.connectionsList[connection].counter }} Items of {{streamConsumerService.connectionsList[connection].consumed }} consumed </div>
-                      </div>
-                    </div>
-                </div>
-           </nb-card-header>
-           <nb-card-body style=" padding: 0;">
-              <consumer-wait *ngIf="!ifRowsExists(connection)" [title]="isStreamAlive(connection) ? 'Waiting For Data...' : 'Stream Lost :('" [showLoading]="isStreamAlive(connection)"></consumer-wait>
-              <div class="row" style="margin: 0;padding: 10px;">    
-              <div *ngIf="ifRowsExists(connection)" class="header-clean col-lg-12"> 
+      
                         <ngx-datatable class="material" 
                           [columnMode]="'force'"
-                          style="height: 55vh;box-shadow: none;"
+                          style="height: calc(100vh - 300px);box-shadow: none;"
                           [rowHeight]="50"
                           [headerHeight]="50"
                           [scrollbarV]="true"
@@ -53,46 +32,6 @@ declare var Papa:any
                           (tableContextmenu)="onTableContextMenu($event)"
                           [rows]="getRowsByConnection(connection)">                            
                           </ngx-datatable>
-                    </div>
-                    <div  class="col-lg-4 header-clean" *ngIf="streamConsumerService.connectionsList[connection].selectedJSON">
-                        <i class="fa fa-close fa-x3" style="color: #232223;" (click)="clearSelected(connection)"></i>
-                        <ngx-json-viewer [json]="streamConsumerService.connectionsList[connection].selectedJSON" [expanded]="false"></ngx-json-viewer>
-                    </div>  
-                    </div>
-                </nb-card-body>
-            </nb-card>
-            </div>
-           </div>
-          </div>
-         </div>
-
-         <ng-template #dialog let-data let-ref="dialogRef">
-            <nb-card [style.width.px]="500" [style.height.px]="300">
-              <nb-card-header>
-                  Edit Columns
-                  <div class="buttons" (click)="ref.close()" style="float: right;">
-                        <i class="nb-close"></i>
-                  </div>
-              </nb-card-header>
-                <nb-card-body>
-                    <div class="row" *ngIf="data !== 'ALL'">
-                          <div class="col-md-6"> Delete <strong> {{ data }} </strong> column</div>
-                          <div class="col-md-6"> <button nbButton class="btn-xsmall btn-danger" (click)="removeColumn(data,ref)">Delete</button></div>
-                    </div>
-                    <br/>
-                    <br/>
-                    <div class="row">
-                       <div class="col-md-6">
-                         <input nbInput #name placeholder="Name">
-                       </div>
-                       <div class="col-md-6">
-                         <button nbButton class="btn-xsmall btn-success" (click)="pushColumn(name.value,ref)">Add</button>
-                        </div>
-                    </div>
-                </nb-card-body>
-
-            </nb-card>
-        </ng-template>
 
        </nb-tab>
     </nb-tabset>

@@ -15,10 +15,12 @@ export class PushFilterWorker extends AbstractStrategy{
     }
 
     maniplute(batchData: IConsumerMessage):Promise<IStrategyResults> {
+        let _this = this;
         return new Promise<IStrategyResults>((resolve,reject)=>{
             var res = alasql(this.payload,[batchData.data]);
+            
             try {
-                resolve({messages:res,outputEmiter:this.outputEmitter,metaColumns:this.metadata.statements})
+                resolve({messages:res,outputEmiter:_this.outputEmitter,metaColumns:_this.metadata.statements})
             }
             catch(ex){
                 reject(ex)

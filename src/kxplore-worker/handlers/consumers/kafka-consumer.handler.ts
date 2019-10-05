@@ -2,8 +2,6 @@ import { IJobInformation } from "../../../kxplore-shared-models/job-details";
 import { Kafka } from 'kafkajs'
 import { EventEmitter } from "events";
 import { AbstractConsumer } from "../abstract-consumer.handler";
-var Queue = require('better-queue');
-import * as alasql from 'alasql'
 
 export interface KafkaMessage {
     partition:number
