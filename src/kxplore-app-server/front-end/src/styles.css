@@ -6,7 +6,7 @@
 
 .nb-theme-default nb-tabset nb-tab{
   overflow-x: hidden;
-    overflow-y: scroll;
+    overflow-y: hidden;
 }
 
 .load-wrapp {

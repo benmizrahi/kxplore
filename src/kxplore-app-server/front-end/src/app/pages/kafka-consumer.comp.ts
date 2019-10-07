@@ -18,10 +18,10 @@ declare var Papa:any
     
     <nb-tabset (changeTab)="tabChanged($event)">
       <nb-tab *ngFor="let connection of getKeys(streamConsumerService.connectionsList)" tabTitle="{{getTabName(connection)}}" [id]="connection" [active]="connection == getActiveTab()"> 
-      
+             <i class="fa fa-close fa-x3" style="color: #ad1c1c;position: absolute;top: -1px;z-index: 10;" (click)="closeStream(connection)"></i>
                         <ngx-datatable class="material" 
                           [columnMode]="'force'"
-                          style="height: calc(100vh - 300px);box-shadow: none;"
+                          style="height: calc(100vh - 300px);"
                           [rowHeight]="50"
                           [headerHeight]="50"
                           [scrollbarV]="true"
