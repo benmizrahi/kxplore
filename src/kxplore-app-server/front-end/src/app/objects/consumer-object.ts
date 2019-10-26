@@ -1,8 +1,6 @@
 import {SocketKafkaService} from "../services/socket-kafka.service";
 import { environment } from "../../environments/environment";
 import { ConnectionObject } from "./connection-object";
-import { runInThisContext } from "vm";
-import { jsonpCallbackContext } from "@angular/common/http/src/module";
 declare var moment:Function;
 
 export class ConsumerObject{

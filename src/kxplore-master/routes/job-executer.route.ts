@@ -4,29 +4,15 @@ import {IDescribeRequest, IStartJob,ISubscribeRequest} from '../../kxplore-share
 import {IDescribeResponse, IStartJobResponse} from '../../kxplore-shared-models/master/server-response'
 import { KxploreWorkersHandler } from "../handlers/kxplore-workers-handler";
 import { KxploreMasterHandler } from "../handlers/kxplore-master-handler";
-import { matchPatten } from "../handlers/describers/IDescibable";
 const uuidv1 = require('uuid/v1');
 
 @Injectable()
 export class JobExecuterRoute{
 
   constructor(@Inject('global-config') private readonly config:any,
-              @Inject(KxploreMasterHandler) private readonly masterHandler:KxploreMasterHandler,
-              @Inject(KxploreWorkersHandler) private readonly kxploreWorkersHandler:KxploreWorkersHandler){}
+              @Inject(KxploreMasterHandler) private readonly masterHandler:KxploreMasterHandler){}
 
   register = (app:express.Application,io:SocketIO.Server) => {
-
-    app.post('/api/describe', async (req:express.Request, res:express.Response) => {
-      try {
-          let payload:IDescribeRequest = req.body 
-          let results = await this.masterHandler.describe(payload.env,matchPatten(payload.env));
-          let response:IDescribeResponse = {status:true,message:'OK',results:results};
-          res.status(200).send(response)
-      }
-      catch(ex){
-        res.status(500).send({status:false,message:`ERROR - ${ex}`});
-      }
-    })
 
     app.post('/api/job/new',async (req:express.Request, res:express.Response) =>{
       try {
@@ -43,23 +29,17 @@ export class JobExecuterRoute{
 
     io.of('/subscribe')
        .on('connection',(socket:SocketIO.Socket)=>{
-        const jobId = socket.request._query['uuid'];
-        const jobEmiter = this.kxploreWorkersHandler.subscribe(jobId)
-        if(jobEmiter){
-          jobEmiter.on(`MESSAGES_${jobId}`,data => {
-              socket.emit(`MESSAGES_${jobId}`,data)
-          })
+         const jobId = socket.request._query['uuid'];
 
-          socket.on(`STOP_JOB_${jobId}`, ()=>{
-              this.kxploreWorkersHandler.stopJob(jobId);
-          });
 
-          socket.on('disconnect', ()=>{
-            this.kxploreWorkersHandler.stopJob(jobId);
-          });
-        }else{
-          console.error(`trying to subscribe to unexisting job_uuid ${jobId}`);
-        }
+       // socket.emit(`MESSAGES_${jobId}`,data)
+
+        socket.on(`STOP_JOB_${jobId}`, ()=>{
+          this.masterHandler.stop(jobId);
+        });
+        socket.on('disconnect', ()=>{
+              this.masterHandler.stop(jobId);
+        });
       })
   }
 }

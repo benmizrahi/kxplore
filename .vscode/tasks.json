@@ -26,6 +26,12 @@
             "problemMatcher": [
                 "$tsc-watch"
             ]
+        },
+        {
+            "type": "npm",
+            "script": "test",
+            "path": "src/kxplore-master/",
+            "problemMatcher": []
         }
     ]
 }

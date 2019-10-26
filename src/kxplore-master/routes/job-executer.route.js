@@ -48,40 +48,16 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var di_1 = require("@decorators/di");
-var kxplore_workers_handler_1 = require("../handlers/kxplore-workers-handler");
 var kxplore_master_handler_1 = require("../handlers/kxplore-master-handler");
-var IDescibable_1 = require("../handlers/describers/IDescibable");
 var uuidv1 = require('uuid/v1');
 var JobExecuterRoute = /** @class */ (function () {
-    function JobExecuterRoute(config, masterHandler, kxploreWorkersHandler) {
+    function JobExecuterRoute(config, masterHandler) {
         var _this = this;
         this.config = config;
         this.masterHandler = masterHandler;
-        this.kxploreWorkersHandler = kxploreWorkersHandler;
         this.register = function (app, io) {
-            app.post('/api/describe', function (req, res) { return __awaiter(_this, void 0, void 0, function () {
-                var payload, results, response, ex_1;
-                return __generator(this, function (_a) {
-                    switch (_a.label) {
-                        case 0:
-                            _a.trys.push([0, 2, , 3]);
-                            payload = req.body;
-                            return [4 /*yield*/, this.masterHandler.describe(payload.env, IDescibable_1.matchPatten(payload.env))];
-                        case 1:
-                            results = _a.sent();
-                            response = { status: true, message: 'OK', results: results };
-                            res.status(200).send(response);
-                            return [3 /*break*/, 3];
-                        case 2:
-                            ex_1 = _a.sent();
-                            res.status(500).send({ status: false, message: "ERROR - " + ex_1 });
-                            return [3 /*break*/, 3];
-                        case 3: return [2 /*return*/];
-                    }
-                });
-            }); });
             app.post('/api/job/new', function (req, res) { return __awaiter(_this, void 0, void 0, function () {
-                var payload, uuid, response, ex_2;
+                var payload, uuid, response, ex_1;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
@@ -95,8 +71,8 @@ var JobExecuterRoute = /** @class */ (function () {
                             res.status(200).send(response);
                             return [3 /*break*/, 3];
                         case 2:
-                            ex_2 = _a.sent();
-                            res.status(500).send({ status: false, message: "ERROR - " + ex_2 });
+                            ex_1 = _a.sent();
+                            res.status(500).send({ status: false, message: "ERROR - " + ex_1 });
                             return [3 /*break*/, 3];
                         case 3: return [2 /*return*/];
                     }
@@ -105,21 +81,13 @@ var JobExecuterRoute = /** @class */ (function () {
             io.of('/subscribe')
                 .on('connection', function (socket) {
                 var jobId = socket.request._query['uuid'];
-                var jobEmiter = _this.kxploreWorkersHandler.subscribe(jobId);
-                if (jobEmiter) {
-                    jobEmiter.on("MESSAGES_" + jobId, function (data) {
-                        socket.emit("MESSAGES_" + jobId, data);
-                    });
-                    socket.on("STOP_JOB_" + jobId, function () {
-                        _this.kxploreWorkersHandler.stopJob(jobId);
-                    });
-                    socket.on('disconnect', function () {
-                        _this.kxploreWorkersHandler.stopJob(jobId);
-                    });
-                }
-                else {
-                    console.error("trying to subscribe to unexisting job_uuid " + jobId);
-                }
+                // socket.emit(`MESSAGES_${jobId}`,data)
+                socket.on("STOP_JOB_" + jobId, function () {
+                    _this.masterHandler.stop(jobId);
+                });
+                socket.on('disconnect', function () {
+                    _this.masterHandler.stop(jobId);
+                });
             });
         };
     }
@@ -127,9 +95,7 @@ var JobExecuterRoute = /** @class */ (function () {
         di_1.Injectable(),
         __param(0, di_1.Inject('global-config')),
         __param(1, di_1.Inject(kxplore_master_handler_1.KxploreMasterHandler)),
-        __param(2, di_1.Inject(kxplore_workers_handler_1.KxploreWorkersHandler)),
-        __metadata("design:paramtypes", [Object, kxplore_master_handler_1.KxploreMasterHandler,
-            kxplore_workers_handler_1.KxploreWorkersHandler])
+        __metadata("design:paramtypes", [Object, kxplore_master_handler_1.KxploreMasterHandler])
     ], JobExecuterRoute);
     return JobExecuterRoute;
 }());

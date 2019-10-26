@@ -7,6 +7,18 @@
         {
             "type": "node",
             "request": "launch",
+            "cwd": "${workspaceFolder}/src/kxplore-master",
+            "name": "kxplore-master-tests",
+            "program": "${workspaceFolder}/src/kxplore-master/node_modules/mocha/bin/_mocha",
+            "args": [
+                "'{,!(node_modules)/**}/**.spec.js'"
+            ],
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen"
+        },
+        {
+            "type": "node",
+            "request": "launch",
             "name": "kxplore-app-server",
             "cwd": "${workspaceFolder}/src/kxplore-app-server/",
             "program": "${workspaceFolder}/src/kxplore-app-server/src/startup.js"

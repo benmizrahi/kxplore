@@ -1,71 +1,73 @@
-import { Injectable } from "@decorators/di";
+import { Injectable, Inject } from "@decorators/di";
 import * as socket from 'socket.io'
-import { IJobInformation } from "../../kxplore-shared-models/job-details";
-import {EventEmitter } from 'events';
+import { TaskInfo } from "../../kxplore-shared-models/task-info";
+import { Observable } from "rxjs";
 
 @Injectable()
 export class KxploreWorkersHandler{
+    
+    private readonly activeWorkers:{ [uuid: string] : {socket:socket.Socket,count:number } } = {}
+    private readonly subscribers: {[j_uuid: string] : any}
 
-    private readonly activeJobs:{ [uuid: string] :  {event:EventEmitter, job:IJobInformation, activeWorkers:Array<string> } } = {}
-    private readonly activeWorkers:{ [uuid: string] : socket.Socket } = {}
-
+    constructor(@Inject('global-config') private readonly config:any){}
 
     connect = (uuid:string,socket:socket.Socket) => {
         console.log(`Worker registered : ${uuid} `)
-        this.activeWorkers[uuid] = socket;
-        Object.keys(this.activeJobs).map(job_id=>{  
-            this.publish_job_to_worker(this.activeJobs[job_id].job,socket,this.activeJobs[job_id].event)
-            this.activeJobs[job_id].activeWorkers.push(uuid);
+        this.activeWorkers[uuid] = { socket:socket,count:0 }
+        
+        socket.on('TASK_CANCELED',(t:TaskInfo)=>{
+            this.activeWorkers[uuid].count--
+            this.subscribers[t.job_id].next(t)
         });
 
-    }
+        socket.on('TASK_FINISHED',(t:TaskInfo)=>{
+            this.activeWorkers[uuid].count--
+            this.subscribers[t.job_id].next(t)
+        })
 
-    subscribe = (uuid:string):EventEmitter => {
-         if(this.activeJobs[uuid])
-             return this.activeJobs[uuid].event;
-         else{
-             return null;
-         }
     }
 
     disconnect = (uuid:string) =>{
         //delete worker form list
         delete this.activeWorkers[uuid];
         //delete worker from all active jobs
-        Object.keys(this.activeJobs).map(job_id=>{
-            let index = this.activeJobs[job_id].activeWorkers.indexOf(uuid);
-            if(index > -1)
-                this.activeJobs[job_id].activeWorkers = this.activeJobs[job_id].activeWorkers.splice(index,1)
-        });
         console.log(`Worker disconnected : ${uuid} `)
     }
 
-    publishJob = (jobInfo:IJobInformation)=>{
-         this.activeJobs[jobInfo.job_uuid] =  {event:new EventEmitter(),job:jobInfo,activeWorkers:[]};
-         Object.keys(this.activeWorkers).map(worker=>{
-            this.publish_job_to_worker(jobInfo,this.activeWorkers[worker],this.activeJobs[jobInfo.job_uuid].event)
-            this.activeJobs[jobInfo.job_uuid].activeWorkers.push(worker);
-        })
+    transfer = (t:TaskInfo,observer:Observable<any>):TaskInfo=>{
+       const max = parseInt(this.config['max-tasks-per-worker']);
+       let w =  this.selectNextWorker(max)
+       if(w){
+            t.processing = true;
+            t.worker = w;
+            this.activeWorkers[w].socket.emit('PROCESS_TASK',t);
+            this.activeWorkers[w].count++
+            console.log(`processing task on worker ${w}! `)
+            return t
+       }else{
+           setTimeout(()=>this.transfer(t,observer),parseInt(this.config['worker-check-frquency-sec']) * 1000)
+       }
     }
 
-    stopJob = (uuid:string) => {
-        Object.keys(this.activeWorkers).map(worker=>{
-             this.activeWorkers[worker].emit(`DELETE_${uuid}`);//tell the worker to stop!
-        });
-        if(this.activeJobs[uuid]){
-            this.activeJobs[uuid].event.removeAllListeners()
-            delete this.activeJobs[uuid]
+    cancel = (t:TaskInfo) => {
+        if(t.worker){
+            this.activeWorkers[t.worker].socket.emit('CANCEL_TASK',t); 
         }
     }
-    
 
-    private publish_job_to_worker = (jobInfo:IJobInformation,worker_socket:socket.Socket ,job_emmiter:EventEmitter) => {
-        worker_socket.emit('NEW_JOB',jobInfo);
-        worker_socket.on(`JOB_DATA_${jobInfo.job_uuid}`,( data:{messages:Array<any>,uuid:string})=>{
-            //on data from worker!
-            if(this.activeJobs[jobInfo.job_uuid]){
-                job_emmiter.emit(`MESSAGES_${jobInfo.job_uuid}`,data)
-            }
-        })  
+    selectNextWorker = (max) => {
+     let selectedWorker,tasksCount = null;
+       for (let worker in this.activeWorkers){
+           if(this.activeWorkers[worker].count == max){
+               continue;
+           }
+           if(tasksCount == null || this.activeWorkers[worker].count < tasksCount ){
+             selectedWorker = worker
+             tasksCount = this.activeWorkers[worker].count;
+           }
+       }
+
+       return selectedWorker;
     }
+
 }

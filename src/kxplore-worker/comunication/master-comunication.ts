@@ -21,7 +21,7 @@ export class MasterCommunication {
         */
         socket.on('NEW_JOB', async (jobData:IJobInformation) => {
             this.active[jobData.job_uuid]  = { c: matchPatten(jobData),e:null};
-            console.log(`worker_id:${process.env.WORKER_ID}, uuid: ${uuid} retrive job: ${JSON.stringify(jobData)}`);
+            console.log(`worker_id:${process.env.WORKER_ID}, uuid: ${uuid} retrive task: ${JSON.stringify(jobData)}`);
             this.active[jobData.job_uuid].e = await this.active[jobData.job_uuid].c.start(jobData);
             this.active[jobData.job_uuid].e.on(`JOB_DATA_${jobData.job_uuid}`,async (data)=>{
                 socket.emit(`JOB_DATA_${jobData.job_uuid}`,data);

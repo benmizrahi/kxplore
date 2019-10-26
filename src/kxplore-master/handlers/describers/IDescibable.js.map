@@ -1,1 +1,0 @@
-{"version":3,"file":"IDescibable.js","sourceRoot":"","sources":["IDescibable.ts"],"names":[],"mappings":";;AACA,qDAAoD;AACpD,8DAAkE;AAOlE,qBAA4B,GAAgB;IACzC,QAAO,GAAG,CAAC,IAAI,EAAC;QACX,KAAK,kBAAU,CAAC,KAAK;YACrB,OAAO,IAAI,iCAAe,EAAE,CAAC;QAC7B;YACA,OAAO,IAAI,iCAAe,EAAE,CAAC;KAChC;AACL,CAAC;AAPD,kCAOC"}

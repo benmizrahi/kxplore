@@ -5,68 +5,75 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 var di_1 = require("@decorators/di");
-var events_1 = require("events");
 var KxploreWorkersHandler = /** @class */ (function () {
-    function KxploreWorkersHandler() {
+    function KxploreWorkersHandler(config) {
         var _this = this;
-        this.activeJobs = {};
+        this.config = config;
         this.activeWorkers = {};
         this.connect = function (uuid, socket) {
             console.log("Worker registered : " + uuid + " ");
-            _this.activeWorkers[uuid] = socket;
-            Object.keys(_this.activeJobs).map(function (job_id) {
-                _this.publish_job_to_worker(_this.activeJobs[job_id].job, socket, _this.activeJobs[job_id].event);
-                _this.activeJobs[job_id].activeWorkers.push(uuid);
+            _this.activeWorkers[uuid] = { socket: socket, count: 0 };
+            socket.on('TASK_CANCELED', function (t) {
+                _this.activeWorkers[uuid].count--;
+                _this.subscribers[t.job_id].next(t);
             });
-        };
-        this.subscribe = function (uuid) {
-            if (_this.activeJobs[uuid])
-                return _this.activeJobs[uuid].event;
-            else {
-                return null;
-            }
+            socket.on('TASK_FINISHED', function (t) {
+                _this.activeWorkers[uuid].count--;
+                _this.subscribers[t.job_id].next(t);
+            });
         };
         this.disconnect = function (uuid) {
             //delete worker form list
             delete _this.activeWorkers[uuid];
             //delete worker from all active jobs
-            Object.keys(_this.activeJobs).map(function (job_id) {
-                var index = _this.activeJobs[job_id].activeWorkers.indexOf(uuid);
-                if (index > -1)
-                    _this.activeJobs[job_id].activeWorkers = _this.activeJobs[job_id].activeWorkers.splice(index, 1);
-            });
             console.log("Worker disconnected : " + uuid + " ");
         };
-        this.publishJob = function (jobInfo) {
-            _this.activeJobs[jobInfo.job_uuid] = { event: new events_1.EventEmitter(), job: jobInfo, activeWorkers: [] };
-            Object.keys(_this.activeWorkers).map(function (worker) {
-                _this.publish_job_to_worker(jobInfo, _this.activeWorkers[worker], _this.activeJobs[jobInfo.job_uuid].event);
-                _this.activeJobs[jobInfo.job_uuid].activeWorkers.push(worker);
-            });
-        };
-        this.stopJob = function (uuid) {
-            Object.keys(_this.activeWorkers).map(function (worker) {
-                _this.activeWorkers[worker].emit("DELETE_" + uuid); //tell the worker to stop!
-            });
-            if (_this.activeJobs[uuid]) {
-                _this.activeJobs[uuid].event.removeAllListeners();
-                delete _this.activeJobs[uuid];
+        this.transfer = function (t, observer) {
+            var max = parseInt(_this.config['max-tasks-per-worker']);
+            var w = _this.selectNextWorker(max);
+            if (w) {
+                t.processing = true;
+                t.worker = w;
+                _this.activeWorkers[w].socket.emit('PROCESS_TASK', t);
+                _this.activeWorkers[w].count++;
+                console.log("processing task on worker " + w + "! ");
+                return t;
+            }
+            else {
+                setTimeout(function () { return _this.transfer(t, observer); }, parseInt(_this.config['worker-check-frquency-sec']) * 1000);
             }
         };
-        this.publish_job_to_worker = function (jobInfo, worker_socket, job_emmiter) {
-            worker_socket.emit('NEW_JOB', jobInfo);
-            worker_socket.on("JOB_DATA_" + jobInfo.job_uuid, function (data) {
-                //on data from worker!
-                if (_this.activeJobs[jobInfo.job_uuid]) {
-                    job_emmiter.emit("MESSAGES_" + jobInfo.job_uuid, data);
+        this.cancel = function (t) {
+            if (t.worker) {
+                _this.activeWorkers[t.worker].socket.emit('CANCEL_TASK', t);
+            }
+        };
+        this.selectNextWorker = function (max) {
+            var selectedWorker, tasksCount = null;
+            for (var worker in _this.activeWorkers) {
+                if (_this.activeWorkers[worker].count == max) {
+                    continue;
                 }
-            });
+                if (tasksCount == null || _this.activeWorkers[worker].count < tasksCount) {
+                    selectedWorker = worker;
+                    tasksCount = _this.activeWorkers[worker].count;
+                }
+            }
+            return selectedWorker;
         };
     }
     KxploreWorkersHandler = __decorate([
-        di_1.Injectable()
+        di_1.Injectable(),
+        __param(0, di_1.Inject('global-config')),
+        __metadata("design:paramtypes", [Object])
     ], KxploreWorkersHandler);
     return KxploreWorkersHandler;
 }());

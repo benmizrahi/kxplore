@@ -9,6 +9,9 @@
     overflow-y: hidden;
 }
 
+.nb-theme-default nb-tabset .tabset .tab{
+  padding-right: 15px;
+}
 .load-wrapp {
   float: left;
   width: 100%;
